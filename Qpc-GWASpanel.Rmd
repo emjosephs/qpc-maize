@@ -1,0 +1,297 @@
+---
+title: "Qpc-maize.Rmd"
+author: "em"
+date: "February 13, 2017"
+output:
+  html_document:
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(viridis)
+library(qpctools)
+library(qvalue)
+setwd('~/Documents/polygenic-maize/') #sorry world
+
+var0 <- function (x) 
+{
+    return(sum(x^2)/length(x))
+}
+```
+
+This notebook has code for running a form of Q<sub>pc</sub> analysis in a GWAS panel of 240 maize lines. 
+
+### 1. read in the kinship matrix and trait data
+
+```{r readinandprocessdata}
+#read in the kinship matrix
+#myKold = read.table('data/All_240.nomaf.nomissing.K')
+myK = read.table('data/All_240E.nomaf.nomissing.K')
+
+
+#give it names
+myKnames = read.table('data/240.names', stringsAsFactors = F)$V1
+row.names(myK) = myKnames[1:dim(myK)[1]]
+heatmap(as.matrix(myK), col=viridis(256))
+
+#do the eigen decomposition
+eigF = eigen(myK)
+myU = eigF$vectors
+myLambdas = eigF$values
+
+#read in trait values
+bluptable= read.table('data/blups_240', header=T)
+mytraitsnice = sapply(names(bluptable)[-1], function(x){
+  strsplit(x, '0607')[[1]][1]
+})
+names(bluptable) = c('line',mytraitsnice)
+```
+
+### 2. calculate the PC cutoffs we're using for tests of selection
+
+```{r pccutoff}
+varexp = myLambdas/sum(myLambdas)
+head(varexp)
+sumexp = sapply(1:length(varexp), function(x){sum(varexp[1:x])})
+
+
+#get cutoffs for omnibus statistic
+myRs = c(which(sumexp > .15)[1], which(sumexp > .3)[1])
+
+#get cutoffs for how many pcs to look at
+pcmax = which(sumexp > 0.3)[1]
+
+#remove the last end of PCs since these are likely to be extra variable
+tailCutoff = round(.9*length(myLambdas))
+tailCutoff
+
+#look at where these are
+par(mfrow=c(1,2), mar=c(5,5,1,1))
+plot(varexp, bty="n", xlab = "PC Index", ylab = "variation explained by each eigenvector")
+plot(sumexp,bty="n", xlab = "PC Index", ylab = "cumulative variation explained by efirst X eigenvectors")
+abline(v=c(myRs, tailCutoff), col = viridis(6)[2:4])
+
+```
+
+### 3. we can do an 'omnibus' test where we test for excess variation along the first few PCs (based on myRs from above) and compare to variation along lower PCs. This is analagous to comparing btw-pop variation and within-pop variation in a Qst-Fst test.
+```{r omnibusqpconallblups}
+calcOmni <- function(myName, myBlups=bluptable, myU=eigF$vectors, myLambdas=eigF$values, rs=myRs){
+  testpcs = rs
+  myZ = myBlups[,myName]
+  myZ = myZ[1:dim(myU)[1]] - mean(myZ)
+  myCm = (myZ %*% myU)/sqrt(myLambdas)
+  myOmni = sapply(testpcs, function(n){
+    var0(myCm[1:n])/var0(myCm[(n+1):tailCutoff])
+  })
+  myPs = sapply(1:length(testpcs), function(x){pf(myOmni[x], testpcs[x], tailCutoff-testpcs[x], lower.tail=F)})
+  retdf = data.frame(pc = testpcs,qsts = myOmni, pvals = myPs, stringsAsFactors = F)
+  return(retdf)
+}
+
+qOmni = sapply(mytraitsnice, calcOmni)
+```
+
+### 4. We can also test for excess variation along specific PCs.
+
+```{r onepctest}
+
+calcQm <- function(myName, myBlups=bluptable, myU=eigF$vectors, myLambdas=eigF$values){
+  myZ = myBlups[,myName]
+  myZ = myZ[1:dim(myU)[1]] - mean(myZ)
+  myCm = (myZ %*% myU)/sqrt(myLambdas)
+  myQm = sapply(1:pcmax, function(n){
+    var0(myCm[n])/var0(myCm[(tailCutoff-50):tailCutoff])
+  })
+  myPs = sapply(1:pcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
+  retdf = data.frame(qm = myQm, pvals = myPs, stringsAsFactors = F)
+  return(retdf)
+  }
+
+mydfs = sapply(mytraitsnice, calcQm)
+
+```
+
+### 5. Next, calculate confidence intervals. This is mainly useful for plotting and these do not go into the actual statistical test.
+
+```{r neutvals}
+calcCIs <- function(myName, myBlups=bluptable, myU=eigF$vectors, myLambdas=eigF$values){
+  myZ = myBlups[,myName][1:239]
+  myZ = myZ - mean(myZ)
+  myBm = myZ %*% myU
+  myCm = myBm/sqrt(myLambdas)
+  myVa = var0(myCm[(tailCutoff-50):tailCutoff])
+  myCI = sqrt(myVa*myLambdas)
+  return(myCI)}
+```
+
+### 6. Make plots and look at the data
+
+```{r summarizeresults}
+
+getqvalues <- function(ptable){
+qobj = qvalue(p = c(ptable))
+myqvals = matrix(qobj$qvalues, nrow=dim(ptable)[1])
+return(myqvals)
+}
+
+allpvals = sapply(1:22, function(x){mydfs[2,][[x]]})
+myqvals = getqvalues(allpvals)
+omnipvals = sapply(1:22, function(x){qOmni[,x]$pvals})
+
+#mysig = apply(allqvals, 2, function(x){ cut(x, c(0,0.001,0.01,0.05,0.1,1), labels=F)})
+layout(matrix(1, nrow=1, ncol=1))
+mysig2 =  cut((1:1000/1000), c(0,0.001,0.01,0.05,0.1,1)) #for legend
+par(mar=c(8,14,2,2), xpd=TRUE, mfrow=c(1,1))
+mycol = c(viridis(6, direction=1)[1:4], "white")
+image(myqvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
+axis(1, at=seq(0,1, length=pcmax), las=2, label=1:pcmax)
+axis(2, at=(0:21)/21, labels = mytraitsnice, las=2)
+legend(-0.2,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
+
+#with omni added in -- these are not corrected for multiple testing
+layout(matrix(c(1,1,2,1,1,2), nrow=2, byrow=TRUE))
+image(myqvals, col=mycol, xaxt="n", yaxt="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
+axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(myqvals)))
+axis(2, at=(0:21)/21, labels = mytraitsnice, las=2)
+legend(-0.2,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
+
+image(omnipvals*44, col=mycol, xaxt="n", yaxt="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
+axis(1, at = c(1:2/2), labels = myRs)
+```
+
+### 7. More plots looking at correlations between PCs and traits.
+
+```{r pccor}
+par(mar=c(5,5,1,1), mfrow=c(1,1))
+
+#read in population data and merge with traits and eigenvectors
+fgtable = read.table('data/FlintGarciaTableS1.csv', sep=',', header=T, stringsAsFactors = F)
+mydf = data.frame(bluptable[-nrow(bluptable),], eigF$vectors, stringsAsFactors = F)
+mydf$fgname = sapply(as.character(mydf$line), function(x){strsplit(x,'_')[[1]][2]})
+fgmerge = dplyr::inner_join(mydf, fgtable, by=c('fgname'='Inbred'))
+
+palette(viridis(6))
+nicepops = c('mixed','non-stiff stalk','popcorn','stiff-stalk','sweet','tropical')
+indvar = sqrt(diag(as.matrix(myK)))
+
+myCIsDTS = calcCIs('DaysToSilk')
+myCIsTKN = calcCIs('TotalKernelNo')
+
+
+save(mydfs, allpvals,myqvals, mytraitsnice, fgmerge, myCIsDTS, myCIsTKN,file="data/qpc-maize_results.rda")
+
+par(xpd=FALSE)
+plot(fgmerge$X1, fgmerge$DaysToSilk, bty="n", xlab = "PC 1", ylab = "Days to Female Flowering", yaxt="n", col=as.factor(fgmerge$Subpopulation), lwd=2)
+axis(2, las=2)
+legend('topleft', nicepops, bty="n", pch=1, pt.lwd=2, col = viridis(6))
+abline(lm(fgmerge$DaysToSilk ~ fgmerge$X1), col=viridis(6)[1], lwd=2)
+abline(a=mean(fgmerge$DaysToSilk), b = 1.96*myCIsDTS[1], lty=2, col=viridis(6)[3], lwd=2)
+abline(a=mean(fgmerge$DaysToSilk), b = -1.96*myCIsDTS[1], lty=2, col=viridis(6)[3], lwd=2)
+
+plot(fgmerge$X7, fgmerge$DaysToSilk, bty="n", xlab = "PC 7", ylab = "Days to Female Flowering", yaxt="n", col=as.factor(fgmerge$Subpopulation), lwd=2)
+axis(2, las=2)
+legend('topright', nicepops, bty="n", pch=1, pt.lwd=2, col = viridis(6))
+abline(lm(fgmerge$DaysToSilk ~ fgmerge$X7), col=viridis(6)[1], lwd=2)
+abline(a=mean(fgmerge$DaysToSilk), b = 1.96*myCIsDTS[7], lty=2, col=viridis(6)[3], lwd=2)
+abline(a=mean(fgmerge$DaysToSilk), b = -1.96*myCIsDTS[7], lty=2, col=viridis(6)[3], lwd=2)
+
+
+plot(fgmerge$X20, fgmerge$DaysToSilk, bty="n", xlab = "PC 20", ylab = "Days to Female Flowering", yaxt="n", col=as.factor(fgmerge$Subpopulation), lwd=2)
+axis(2, las=2)
+legend('topleft', nicepops, bty="n", pch=1, pt.lwd=2, col = viridis(6))
+abline(lm(fgmerge$DaysToSilk ~ fgmerge$X20), col=viridis(6)[1], lwd=2)
+abline(a=mean(fgmerge$DaysToSilk), b = 1.96*myCIsDTS[20], lty=2, col=viridis(6)[3], lwd=2)
+abline(a=mean(fgmerge$DaysToSilk), b = -1.96*myCIsDTS[20], lty=2, col=viridis(6)[3], lwd=2)
+
+
+```
+
+```{r addbyadd, eval=F, include=F}
+
+myName = mytraitsnice[1]
+calcAddAdd <- function(myName, myBlups=bluptable, myU=eigF$vectors, myLambdas=eigF$values){
+myZ = myBlups[,myName]
+myZ = myZ[1:dim(myU)[1]] - mean(myZ)
+myZm = (myZ %*% myU)
+
+
+#myQm = sapply(1:pcmax, function(n){
+#    var0(myCm[n])/var0(myCm[(tailCutoff-50):tailCutoff])
+#  })
+#  myPs = sapply(1:pcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
+#  retdf = data.frame(qm = myQm, pvals = myPs, stringsAsFactors = F)
+#  return(retdf)
+  }
+
+#mydfs = sapply(mytraitsnice, calcQm)
+
+```
+
+```{r talk plots, eval=F, include=F}
+par(xpd=FALSE, mfrow=c(1,1), mar=c(5,5,3,3))
+mycol = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", '#D55E00', '#CC79A7')
+palette(mycol[c(1,4,6,3,7,8)])
+
+###non sig trait
+myTrait = 'TotalKernelNo'
+myCIs = calcCIs(myTrait)
+
+plot(fgmerge$X1, fgmerge[,myTrait], bty="n", xlab = "PC 1", ylab = myTrait, yaxt="n", xaxt="n", col="white", lwd=3)
+axis(2, las=2, lwd=3)
+axis(1, lwd=3)
+abline(a=mean(fgmerge[,myTrait]), b = 1.96*myCIs[1], lty=2, col=viridis(6)[3], lwd=3)
+abline(a=mean(fgmerge[,myTrait]), b = -1.96*myCIs[1], lty=2, col=viridis(6)[3], lwd=3)
+
+
+plot(fgmerge$X1, fgmerge[,myTrait], bty="n", xlab = "PC 1", ylab = myTrait, yaxt="n", col=as.factor(fgmerge$Subpopulation), lwd=3, cex=1.5)
+axis(2, las=2, lwd=3)
+axis(1, lwd=3)
+#legend('topleft', nicepops, bty="n", pch=1, pt.lwd=3, col = palette())
+abline(lm(fgmerge[,myTrait] ~ fgmerge$X1), col=viridis(6)[1], lwd=3)
+abline(a=mean(fgmerge[,myTrait]), b = 1.96*myCIs[1], lty=2, col=viridis(6)[3], lwd=3)
+abline(a=mean(fgmerge[,myTrait]), b = -1.96*myCIs[1], lty=2, col=viridis(6)[3], lwd=3)
+
+
+## sig trat
+
+myTrait = 'DaysToSilk'
+myCIs = calcCIs(myTrait)
+
+plot(fgmerge$X1, fgmerge[,myTrait], bty="n", xlab = "PC 1", ylab = myTrait, yaxt="n", col="white", lwd=3)
+axis(2, las=2, lwd=3)
+axis(1, lwd=3)
+abline(a=mean(fgmerge[,myTrait]), b = 1.96*myCIs[1], lty=2, col=viridis(6)[3], lwd=3)
+abline(a=mean(fgmerge[,myTrait]), b = -1.96*myCIs[1], lty=2, col=viridis(6)[3], lwd=3)
+
+
+plot(fgmerge$X6, fgmerge[,myTrait], bty="n", xlab = "PC 6", ylab = myTrait, yaxt="n", col=as.factor(fgmerge$Subpopulation), lwd=3, cex=1.5)
+axis(2, las=2, lwd=3)
+axis(1, lwd=3)
+#legend('topleft', nicepops, bty="n", pch=1, pt.lwd=3, col = viridis(6))
+abline(lm(fgmerge[,myTrait] ~ fgmerge$X6), col=viridis(6)[1], lwd=3)
+abline(a=mean(fgmerge[,myTrait]), b = 1.96*myCIs[6], lty=2, col=viridis(6)[3], lwd=3)
+abline(a=mean(fgmerge[,myTrait]), b = -1.96*myCIs[6], lty=2, col=viridis(6)[3], lwd=3)
+
+
+plot(fgmerge$X1, fgmerge[,myTrait], bty="n", xlab = "PC 6", ylab = myTrait, yaxt="n", col=as.factor(fgmerge$Subpopulation), lwd=3, cex=1.5)
+axis(2, las=2, lwd=3)
+axis(1, lwd=3)
+#legend('topleft', nicepops, bty="n", pch=1, pt.lwd=3, col = viridis(6))
+abline(lm(fgmerge[,myTrait] ~ fgmerge$X1), col=viridis(6)[1], lwd=3)
+abline(a=mean(fgmerge[,myTrait]), b = 1.96*myCIs[1], lty=2, col=viridis(6)[3], lwd=3)
+abline(a=mean(fgmerge[,myTrait]), b = -1.96*myCIs[1], lty=2, col=viridis(6)[3], lwd=3)
+
+
+
+
+
+
+plot(fgmerge$X1, fgmerge$X2, bty="n", xlab = "PC 1", ylab = "PC 2", yaxt="n", col=as.factor(fgmerge$Subpopulation), lwd=3, cex=1.5)
+axis(2, las=2, lwd=3)
+axis(1, lwd=3)
+#legend('topleft', nicepops, bty="n", pch=1, pt.lwd=3, col = viridis(6))
+
+
+```

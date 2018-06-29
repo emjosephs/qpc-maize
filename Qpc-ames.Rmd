@@ -1,0 +1,301 @@
+---
+title: "Qxpc-ames.Rmd"
+author: "em"
+date: "February 13, 2017"
+output:
+  html_document:
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(viridis)
+library(qpctools)
+library(qvalue)
+setwd('~/Documents/polygenic-maize/') #sorry world
+
+calcVa <-function(afs, betas){
+  return(sum(2*afs*(1-afs)*(betas^2)))
+}
+
+```
+
+This notebook has code for running a form of Q<sub>xpc</sub> analysis using the Major-Goodman GWAS panel and detecting selection in the Ames panel.
+
+First, load in the kinship matrix and make a conditional matrix
+```{r kmatrix}
+#myF = read.table('data/ames.281.june14.gmriE.5e4.K')
+#save(myF, file="data/ames.281E.K.rda")
+load('data/ames.281E.K.rda')
+
+sigma11 = as.matrix(myF[1:2704,1:2704])
+sigma12 = as.matrix(myF[1:2704,2705:2984])
+sigma21 = as.matrix(myF[2705:2984,1:2704])
+sigma22 = as.matrix(myF[2705:2984,2705:2984]) #we are dropping the last row
+sigma.cond = sigma11 - sigma12 %*% solve(sigma22) %*% sigma21 
+```
+
+
+```{r make-eigens, eval=F}
+regEig = eigen(myF)
+#write.table(regEig$vectors,file='data/ames.reg.eigenvectors', quote=F, row.names=F, col.names=F)
+#write.table(regEig$values,file='data/ames.reg.eigenvalues', quote=F, row.names=F, col.names=F)
+save(regEig, file = 'data/ames.281E.regeig.rda')
+
+condEig = eigen(sigma.cond)
+save(condEig, file = 'data/ames.281E.condeig.rda')
+
+amesOnly = read.table('data/ames.june14.gmriE.5e4.K')
+amesEig = eigen(amesOnly)
+save(amesEig, file='data/amesOnly.eig.rda')
+
+```
+
+```{r read-eigens}
+load('data/ames.281E.condeig.rda')
+cEigVectors = condEig$vectors
+cEigValues = condEig$values
+
+traitNames = read.table('data/blup.names', stringsAsFactors=F)$V1
+
+```
+
+```{r pccutoffs}
+#get cutoffs for pcs based on % variation explained
+varexp = cEigValues/sum(cEigValues)
+sumexp = sapply(1:length(varexp), function(x){sum(varexp[1:x])})
+par(mfrow=c(1,2), mar=c(5,5,1,1))
+
+#get cutoffs for omnibus statistic
+myRs = c(which(sumexp > .05)[1], which(sumexp > .3)[1])
+myRs
+
+#get cutoffs for how many pcs to look at
+pcmax = which(sumexp > 0.3)[1]
+
+#remove the last end of PCs 
+tailCutoff = round(.9*length(cEigValues))
+
+par(mfrow=c(1,2), mar=c(5,5,1,1))
+plot(varexp, bty="n", xlab = "PC Index", ylab = "variation explained by each eigenvector")
+plot(sumexp,bty="n", xlab = "PC Index", ylab = "cumulative variation explained by efirst X eigenvectors")
+abline(v=c(myRs, tailCutoff), col = viridis(6)[2:4])
+
+```
+
+
+```{r filtergwasresults, eval=F}
+
+linkm = read.table('data/FileS3.csv', header=T)
+library('IRanges')
+library('GenomicRanges')
+myranges = sapply(1:10, function(i){
+  mychr = dplyr::filter(linkm, chromosome==i)
+  windowStarts <- mychr[seq(1, nrow(mychr), 5),]
+  windowEnds <- mychr[c(seq(1, nrow(mychr)-5, 5)+5,nrow(mychr) ),]
+  mywin = IRanges(start=windowStarts$position, end=windowEnds$position)
+  return(mywin)})
+ldwindows = GRanges()
+for (i in 1:10){
+  # chrld = GRanges(i, strand = "+",myranges[[i]])
+  suppressWarnings(ldwindows <- append(ldwindows,chrld))
+}
+
+blups = read.table('../maizeqx/smallFiles/blups0607', stringsAsFactors=F)
+
+ldprune <- function(mytrait){
+set.seed(1)
+mytest = processGemmaOutput(paste('../maizeqx/bigFiles/281_results/',mytrait,'.281.assoc.txt',sep=""))
+mycutoff = 0.005
+mysig = dplyr::filter(mytest, p_lrt < mycutoff)
+sig.ranges = GRanges(seqname = mysig$chr, ranges = IRanges(start=mysig$ps, width=1))
+myOverlaps = as.matrix(findOverlaps(ldwindows,sig.ranges))
+mysig$myIndex = as.numeric(row.names(mysig))
+myTop = dplyr::inner_join(as.data.frame(myOverlaps), mysig, by = c("subjectHits" = "myIndex")) %>% group_by(queryHits) %>% filter(p_lrt == min(p_lrt)) %>% sample_n(1) 
+write.table(myTop$rs, file=paste('data/281_gwas_results/ldfiltered.',mytrait, sep=""),quote=FALSE, row.names=FALSE, col.names=FALSE)
+write.table(myTop, file=paste('data/281_gwas_results/ldfiltered.',mytrait,'assoc.txt', sep=""),quote=FALSE, row.names=FALSE, col.names=FALSE)
+if (nrow(myTop)> 0){return(mytrait)}
+}
+
+traitsWithHits <- sapply(blups$V1, ldprune) #LD prune and write out loci
+
+pullSigs <- function(myI){
+   myHits = read.table(paste('data/281_gwas_results/ldfiltered.',myI,'assoc.txt',sep=""), stringsAsFactors=F)
+  names(myHits) = c('x','y',strsplit('chr     rs      ps      n_miss  allele1 allele0 af      beta    se      l_remle l_mle   p_wald  p_lrt   p_score', split=' +')[[1]])
+  system(paste('head -n 1 data/ames.281.june14.geno95.maf01.randomimpute > data/281_gwas_results/sigSnps.',myI,sep=""))
+  sapply(myHits$rs, function(x) {system(paste('grep ',x,' data/ames.281.june14.geno95.maf01.randomimpute >> data/281_gwas_results/sigSnps.',myI, sep=""))})
+}
+
+test = sapply(blups$V1,pullSigs)
+```
+
+```{r runqxpc}
+myI = traitNames[6]
+myM=2704
+Qxpcames <- function(myI, myM = 2704){
+#read in data
+gwasHits = read.table(paste('data/281_gwas_results/ldfiltered.',myI,'assoc.txt',sep=""), stringsAsFactors=F)
+names(gwasHits) = c('x','y',strsplit('chr     rs      ps      n_miss  allele1 allele0 af      beta    se      l_remle l_mle   p_wald  p_lrt   p_score', split=' +')[[1]])
+sigGenos = read.table(paste('data/281_gwas_results/sigSnps.',myI, sep=""), header=T, stringsAsFactors=F)
+
+#combine table of GWAS results with genotypes in the GWAS set
+combData = dplyr::left_join(sigGenos, gwasHits, by = c('locus'='rs'))
+myBetas = as.matrix(combData$beta)
+myG = t(as.matrix(sigGenos[,4:ncol(sigGenos)]))
+
+#center genotype matrix
+m = nrow(myG)
+myT = matrix(data = -1/m, nrow = m - 1, ncol = m)
+diag(myT) = (m - 1)/m
+myGcent = myT %*% myG
+
+#calculate breeding values
+allZ = myGcent %*% myBetas
+z1 = allZ[1:myM]
+z2 = allZ[(myM+1):length(allZ)]
+zcond = mean(z1) + sigma12 %*% solve(sigma22) %*%  z2 #calculating the conditional prediction for Z
+
+#project breeding values onto PCs and standardize
+myVa = calcVa(colMeans(myG)/2, myBetas)
+myBm = t(z1 - zcond) %*% as.matrix(cEigVectors) #z1 - zcond is the observed - expected under conditional
+myCm = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(2*cEigValues[x]*myVa))})
+
+myCmprime = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(cEigValues[x]))})
+myQm = sapply(1:pcmax, function(n){
+    var0(myCmprime[n])/var0(myCmprime[(tailCutoff-50):tailCutoff])
+  })
+myPsprime = sapply(1:pcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
+
+
+#do omnibus test
+myOmni = sapply(myRs, function(n){var0(myCm[1:n])})
+myOmniPs = sapply(1:length(myOmni), function(x){pchisq(myOmni[x], df = myRs[x], lower.tail=F)})
+
+#do PC specific test -- here still using Va from the loci effect sizes and frequency
+#myPcPs = sapply(myCm, function(x){2*pnorm(-abs(myQm), mean=0, sd = 1)}) #normal dist
+myPcPs = sapply(myCm[1:pcmax], function(x){pchisq(var0(x), df=1, lower.tail=F)}) #chisq dist
+
+outList = list(omni_p = myOmniPs, pc_p = myPcPs, va = myVa, muprime = zcond, cms = myCm, cmprime = myCmprime, pprime = myPsprime)
+#return the data in a reasonable way
+}
+
+qxpcamesOut = lapply(traitNames,Qxpcames)
+
+```
+
+
+```{r heatmap-figure}
+niceTraitnames = sapply(traitNames, function(x){
+  strsplit(x, '0607')[[1]][1]
+})
+
+pcpvals = sapply(qxpcamesOut, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
+#omnipvals = sapply(qxpcamesOut, function(x) {x$omni_p})
+allqvals = get_q_values(pcpvals)
+
+#mysig = apply(allqvals, 2, function(x){ cut(x, c(0,0.001,0.01,0.05,0.1,1), labels=F)})
+layout(matrix(1, nrow=1, ncol=1))
+mysig2 =  cut((1:1000/1000), c(0,0.001,0.01,0.05,0.1,1)) #for legend
+par(mar=c(8,14,2,2), xpd=TRUE, mfrow=c(1,1))
+mycol = c(viridis(6, direction=1)[1:4], "white")
+image(allqvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
+#axis(1, at = c(0:5/5), labels = (0:5)*10)
+axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(allqvals)))
+axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
+legend(-0.2,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
+
+#mysig = apply(allqvals, 2, function(x){ cut(x, c(0,0.001,0.01,0.05,0.1,1), labels=F)})
+image(pcpvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
+#axis(1, at = c(0:5/5), labels = (0:5)*10)
+axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(allqvals)))
+axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
+legend(-0.2,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
+
+```
+
+
+```{r pccor-figure}
+par(mar=c(5,5,2,2))
+
+
+```
+
+
+Running the original version of the test.
+```{r no-conditional-test}
+#
+load('data/amesOnly.eig.rda')
+
+myI = traitNames[6]
+myM=2704
+Qxpcames_nocond <- function(myI, myM = 2704){
+#read in data
+gwasHits = read.table(paste('data/281_gwas_results/ldfiltered.',myI,'assoc.txt',sep=""), stringsAsFactors=F)
+names(gwasHits) = c('x','y',strsplit('chr     rs      ps      n_miss  allele1 allele0 af      beta    se      l_remle l_mle   p_wald  p_lrt   p_score', split=' +')[[1]])
+sigGenos = read.table(paste('data/281_gwas_results/sigSnps.',myI, sep=""), header=T, stringsAsFactors=F)
+
+#combine table of GWAS results with genotypes in the GWAS set
+combData = dplyr::left_join(sigGenos, gwasHits, by = c('locus'='rs'))
+myBetas = as.matrix(combData$beta)
+myG = t(as.matrix(sigGenos[,4:(myM+3)]))
+
+#center genotype matrix
+m = nrow(myG)
+myT = matrix(data = -1/m, nrow = m - 1, ncol = m)
+diag(myT) = (m - 1)/m
+myGcent = myT %*% myG
+
+#calculate breeding values
+allZ = myGcent %*% myBetas
+
+#project breeding values onto PCs and standardize
+myVa = calcVa(colMeans(myG)/2, myBetas)
+myBm = t(allZ) %*% amesEig$vectors
+myCm = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(2*amesEig$values[x]*myVa))})
+
+myCmprime = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(amesEig$values[x]))})
+myQm = sapply(1:pcmax, function(n){
+    var0(myCmprime[n])/var0(myCmprime[(tailCutoff-50):tailCutoff])
+  })
+myPsprime = sapply(1:pcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
+
+
+#do omnibus test
+myOmni = sapply(myRs, function(n){var0(myCm[1:n])})
+myOmniPs = sapply(1:length(myOmni), function(x){pchisq(myOmni[x], df = myRs[x], lower.tail=F)})
+
+#do PC specific test -- here still using Va from the loci effect sizes and frequency
+#myPcPs = sapply(myCm, function(x){2*pnorm(-abs(myQm), mean=0, sd = 1)}) #normal dist
+myPcPs = sapply(myCm[1:pcmax], function(x){pchisq(var0(x), df=1, lower.tail=F)}) #chisq dist
+
+outList = list(omni_p = myOmniPs, pc_p = myPcPs, va = myVa, muprime = allZ, cms = myCm, cmprime = myCmprime, pprime = myPsprime)
+#return the data in a reasonable way
+}
+
+ncamesOut = lapply(traitNames,Qxpcames_nocond)
+
+ncpvals = sapply(ncamesOut, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
+ncqvals = get_q_values(ncpvals)
+
+#mysig = apply(allqvals, 2, function(x){ cut(x, c(0,0.001,0.01,0.05,0.1,1), labels=F)})
+layout(matrix(1, nrow=1, ncol=1))
+mysig2 =  cut((1:1000/1000), c(0,0.001,0.01,0.05,0.1,1)) #for legend
+par(mar=c(8,14,2,2), xpd=TRUE, mfrow=c(1,1))
+mycol = c(viridis(6, direction=1)[1:4], "white")
+image(ncqvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
+#axis(1, at = c(0:5/5), labels = (0:5)*10)
+axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(allqvals)))
+axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
+legend(-0.2,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
+
+image(ncpvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
+#axis(1, at = c(0:5/5), labels = (0:5)*10)
+axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(allqvals)))
+axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
+legend(-0.2,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
+
+
+save(qxpcamesOut, allqvals, niceTraitnames, ncqvals, ncamesOut, file="data/ames_qxpc_data.rda")
+````
+
