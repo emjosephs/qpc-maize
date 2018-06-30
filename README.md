@@ -28,6 +28,12 @@ Other required packages are *mass*, *dplyr*, *qvalue*, and *viridis*. I might ma
 **Simulations-polygenicqpc.Rmd** has code for running simulations on polygenic Q<sub>pc</sub> in the ames panel and European landraces. 
 
 
+## Data
+Here is a description of the files in data
+
+**263-gwas-results** has results from GWAS that correspond to Q<sub>pc</sub> analysis on polygenic scores in European landraces
+
+
 
 ## Etc
 Thanks to Hilary Parker for the guide on making a personal R package: https://hilaryparker.com/2014/04/29/writing-an-r-package-from-scratch/

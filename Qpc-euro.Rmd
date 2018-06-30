@@ -1,5 +1,5 @@
 ---
-title: "Qxpc-euro.Rmd"
+title: "Qpc-euro.Rmd"
 author: "em"
 date: "February 13, 2017"
 output:
@@ -13,20 +13,16 @@ library(dplyr)
 library(viridis)
 library(qpctools)
 library(qvalue)
-library(data.table)
-setwd('~/Documents/polygenic-maize/') #sorry world
+setwd('~/Documents/qpc/') #sorry world
 ```
 
 This notebook has code for running a form of Q<sub>pc</sub> analysis using the Major-Goodman GWAS panel and detecting selection in the European landraces.
 
-First, load in the kinship matrix and make a conditional matrix
+First, load in the kinship matrix and make a conditional matrix 
 ```{r kmatrix}
-#myF = read.table('data/merged263Landraces.gmriE.5e4.K')
-#save(myF, file = 'data/euro.282.E.rda')
 load('data/euro.282.E.rda')
 
-#load('data/euro.282.rda')
-#myF = euro282
+
 sigma11 = as.matrix(myF[1:906,1:906])
 sigma12 = as.matrix(myF[1:906,907:1168])
 sigma21 = as.matrix(myF[907:1168,1:906])
@@ -39,18 +35,21 @@ cEigValues = condEig$values
 
 traitNames = read.table('data/blup.names', stringsAsFactors=F)$V1
 
+niceTraitnames = sapply(traitNames, function(x){
+  strsplit(x, '0607')[[1]][1]
+})
+
 ```
 
 
 ```{r make-eigens, eval=F}
 #make eigendecomp files and save for later
-euroOnlyF = as.matrix(read.table('data/mergedLandraces.gmriE.5e4.K'))
-euroOnlyeigen = eigen(euroOnlyF)
-save(euroOnlyF, euroOnlyeigen, file='data/euroOnlyE.rda')
+#euroOnlyF = as.matrix(read.table('data/mergedLandraces.gmriE.5e4.K'))
+#euroOnlyeigen = eigen(euroOnlyF)
+#save(euroOnlyF, euroOnlyeigen, file='data/euroOnlyK.rda')
+
 euro282eigen = eigen(myF)
-save(euro282eigen, file = 'data/euro.282E.rda')
-eigVectors = euro282eigen$vectors
-eigValues = euro282eigen$values
+save(euro282eigen, file = 'data/euro.282.eig.rda')
 ```
 
 
@@ -60,16 +59,13 @@ varexp = cEigValues/sum(cEigValues)
 sumexp = sapply(1:length(varexp), function(x){sum(varexp[1:x])})
 par(mfrow=c(1,2), mar=c(5,5,1,1))
 
-#get cutoffs for omnibus statistic
-#myRs = c(which(sumexp > .15)[1], which(sumexp > .30)[1])
-#myRs
-
 #get cutoffs for how many pcs to look at
 pcmax = which(sumexp > 0.30)[1]
 
 #remove the last end of PCs 
 tailCutoff = round(.9*length(cEigValues))
 
+#look at the distributions of eigenvals and percent var explained
 par(mfrow=c(1,2), mar=c(5,5,1,1))
 plot(varexp, bty="n", xlab = "PC Index", ylab = "variation explained by each eigenvector")
 plot(sumexp,bty="n", xlab = "PC Index", ylab = "cumulative variation explained by efirst X eigenvectors")
@@ -78,35 +74,15 @@ abline(v=c(pcmax, tailCutoff), col = viridis(6)[2:4])
 ```
 
 
-```{r, eval=F, echo=F}
-#get gwas site genotypes out of larger dataset
-findHits <- function(myI){
-system(paste('head -n 1 data/merged263Landraces.alleles.gmri.randomimpute > data/263_gwas_results/sigSnpsEuro.',myI,sep=""))
-#read in hits
-myHits = read.table(paste('data/263_gwas_results/ldfiltered.assoc.',myI, sep=""), stringsAsFactors=F)
-names(myHits) = c("query","subject","chr" ,   "rs"      ,"ps",      "n_miss",  "allele1", "allele0", "af"   ,   "beta"  ,  "se"   ,   "l_remle" ,"l_mle"   ,"p_wald",  "p_lrt",  "p_score", "scaf")
-myHits$locus =  sapply(myHits$rs, function(x){paste('s',gsub(":","_",x),sep="")})
-sapply(myHits$locus, function(x){
-system(
-  paste('awk \'$3 == ', '"', x, '"' ,'\' data/merged263Landraces.alleles.gmri.randomimpute >> data/263_gwas_results/sigSnpsEuro.',myI, sep="")
-  )
-  }
-)
-
-}
-sapply(1:22, findHits)
-
-
-```
-
 ```{r runqxpc, eval=T}
-#myI = 6
+
 Qxpceuro <- function(myI, myM = 906, cutoff=1){ #myM is the number of individuals in the genotyping panel
+  
 #read in data
-gwasHits = read.table(paste('data/263_gwas_results/ldfiltered.assoc.',myI,sep=""), stringsAsFactors=F)
+gwasHits = read.table(paste('data/263-gwas-results/ldfiltered.assoc.',myI,sep=""), stringsAsFactors=F)
 names(gwasHits) = c('x','y',strsplit('chr     rs      ps      n_miss  allele1 allele0 af      beta    se      l_remle l_mle   p_wald  p_lrt   p_score scaf', split=' +')[[1]])
 gwasHits$locus =  sapply(gwasHits$rs, function(x){paste('s',gsub(":","_",x),sep="")})
-sigGenos = read.table(paste('data/263_gwas_results/sigSnpsEuro.',myI, sep=""), header=T, stringsAsFactors=F)
+sigGenos = read.table(paste('data/263-gwas-results/sigSnpsEuro.',myI, sep=""), header=T, stringsAsFactors=F)
 
 ##filter based on p cutoff
 gwasHits = dplyr::filter(gwasHits, p_lrt < cutoff)
@@ -167,10 +143,6 @@ save(qxpceuroOut, qxpceuroOutcutoff,  qxpceuroOutcutoff2, file = "data/qxpc_euro
 
 ```{r heatmap-figure}
 load('data/qxpc_euro_output.rda')
-
-niceTraitnames = sapply(traitNames, function(x){
-  strsplit(x, '0607')[[1]][1]
-})
 
 pcpvalsprime = sapply(qxpceuroOut, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
 pcpvals = sapply(qxpceuroOut, function(x){x$pc_p})
@@ -420,14 +392,15 @@ legend('topleft', c('y = x','y = x + 1/3', 'y = x + 1/2'), lwd=2, col = viridis(
 Running the original version of the test.
 ```{r no-conditional-test}
 #
-load('data/euroOnlyE.rda')
+load('data/euro-only-eigen.rda')
 
+### function for running Qpc on European polygenic scores without the conditional test
 Qxpceuro_nocond <- function(myI, myM = 906){
 #read in data
-gwasHits = read.table(paste('data/263_gwas_results/ldfiltered.assoc.',myI,sep=""), stringsAsFactors=F)
+gwasHits = read.table(paste('data/263-gwas-results/ldfiltered.assoc.',myI,sep=""), stringsAsFactors=F) #gwas results
 names(gwasHits) = c('x','y',strsplit('chr     rs      ps      n_miss  allele1 allele0 af      beta    se      l_remle l_mle   p_wald  p_lrt   p_score', split=' +')[[1]])
 gwasHits$locus =  sapply(gwasHits$rs, function(x){paste('s',gsub(":","_",x),sep="")})
-sigGenos = read.table(paste('data/263_gwas_results/sigSnpsEuro.',myI, sep=""), header=T, stringsAsFactors=F)
+sigGenos = read.table(paste('data/263-gwas-results/sigSnpsEuro.',myI, sep=""), header=T, stringsAsFactors=F) #genotypes of gwas snps in the European landraces
 
 #combine table of GWAS results with genotypes in the GWAS set
 combInfo = dplyr::left_join(sigGenos, gwasHits, by = 'locus')
@@ -435,7 +408,7 @@ combInfo$mybetas = ifelse(combInfo$allele1 == combInfo$ALT, combInfo$beta, -comb
 myBetas = as.matrix(combInfo$mybetas)
 myG = t(as.matrix(sigGenos[,6:(myM+5)]))
 
-#center genotype matrix
+#center genotype matrix 
 m = nrow(myG)
 myT = matrix(data = -1/m, nrow = m - 1, ncol = m)
 diag(myT) = (m - 1)/m
@@ -444,57 +417,39 @@ myGcent = myT %*% myG
 #calculate breeding values
 allZ = myGcent %*% myBetas
 
-#project breeding values onto PCs and standardize
+#project breeding values onto PCs and standardize by eigenvalue
 myVa = calcVa(colMeans(myG)/2, myBetas)
 myBm = t(allZ) %*% euroOnlyeigen$vectors
-myCm = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(2*euroOnlyeigen$values[x]*myVa))})
 
-#do omnibus test
-#myOmni = sapply(myRs, function(n){var0(myCm[1:n])})
-#myOmniPs = sapply(1:length(myOmni), function(x){pchisq(myOmni[x], df = myRs[x], lower.tail=F)})
-
-#do PC specific test -- here still using Va from the loci effect sizes and frequency
-myPcPs = sapply(myCm[1:pcmax], function(x){pchisq(var0(x), df=1, lower.tail=F)}) #chisq dist
-
-
+#do Qpc
 myCmprime = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(cEigValues[x]))})
 myQm = sapply(1:pcmax, function(n){
     var0(myCmprime[n])/var0(myCmprime[(tailCutoff-50):tailCutoff])
   })
 myPsprime = sapply(1:pcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
 
-outList = list(pc_p = myPcPs, va = myVa, cms = myCm, cmprime = myCmprime, pprime = myPsprime, n.sites = nrow(combInfo))
-#return the data in a reasonable way
+outList = list(cmprime = myCmprime, pprime = myPsprime, n.sites = nrow(combInfo))
 }
 
+### Run original Qpc on all polygenic scores
 ncEuroOut = lapply(1:22,Qxpceuro_nocond)
+save(ncEuroOut, file="data/qxpc-euro-nc.rda")
 
-save(ncEuroOut, file="data/qxpc_euro_nc.rda")
-
-ncpvals = sapply(ncEuroOut, function(x) {x$pc_p}) #matrix, rows are pvals, columns are traits
-#ncomnipvals = sapply(ncEuroOut, function(x) {x$omni_p})
+### look at the output
+ncpvals = sapply(ncEuroOut, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
 ncqvals = get_q_values(ncpvals)
 
 #mysig = apply(allqvals, 2, function(x){ cut(x, c(0,0.001,0.01,0.05,0.1,1), labels=F)})
-layout(matrix(1, nrow=1, ncol=1))
 mysig2 =  cut((1:1000/1000), c(0,0.001,0.01,0.05,0.1,1)) #for legend
 par(mar=c(8,14,2,2), xpd=TRUE, mfrow=c(1,1))
 mycol = c(viridis(6, direction=1)[1:4], "white")
 image(ncqvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
 #axis(1, at = c(0:5/5), labels = (0:5)*10)
-axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(allqvals)))
+axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(ncqvals)))
 axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
 legend(-0.2,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
 
-#with omni added in -- won't qvalue these for now
-#layout(matrix(c(1,1,2,1,1,2), nrow=2, byrow=TRUE))
-#image(ncqvals, col=mycol, xaxt="n", yaxt="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
-#axis(1, at = c(0:5/5), labels = c(1,(1:5)*10))
-#axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
-#legend(-0.2,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
 
-#image(ncomnipvals*44, col=mycol, xaxt="n", yaxt="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
-#axis(1, at = c(1:2/2), labels = myRs)
 
 
 
