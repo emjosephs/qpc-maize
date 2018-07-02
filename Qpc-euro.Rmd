@@ -62,9 +62,6 @@ par(mfrow=c(1,2), mar=c(5,5,1,1))
 #get cutoffs for how many pcs to look at
 pcmax = which(sumexp > 0.30)[1]
 
-#remove the last end of PCs 
-tailCutoff = round(.9*length(cEigValues))
-
 #look at the distributions of eigenvals and percent var explained
 par(mfrow=c(1,2), mar=c(5,5,1,1))
 plot(varexp, bty="n", xlab = "PC Index", ylab = "variation explained by each eigenvector")
@@ -73,179 +70,40 @@ abline(v=c(pcmax, tailCutoff), col = viridis(6)[2:4])
 
 ```
 
+This is how we calculate Qpc
+```{r}
+Qpceuro
 
-```{r runqxpc, eval=T}
+```
 
-Qxpceuro <- function(myI, myM = 906, cutoff=1){ #myM is the number of individuals in the genotyping panel
-  
-#read in data
-gwasHits = read.table(paste('data/263-gwas-results/ldfiltered.assoc.',myI,sep=""), stringsAsFactors=F)
-names(gwasHits) = c('x','y',strsplit('chr     rs      ps      n_miss  allele1 allele0 af      beta    se      l_remle l_mle   p_wald  p_lrt   p_score scaf', split=' +')[[1]])
-gwasHits$locus =  sapply(gwasHits$rs, function(x){paste('s',gsub(":","_",x),sep="")})
-sigGenos = read.table(paste('data/263-gwas-results/sigSnpsEuro.',myI, sep=""), header=T, stringsAsFactors=F)
 
-##filter based on p cutoff
-gwasHits = dplyr::filter(gwasHits, p_lrt < cutoff)
-
-#combine table of GWAS results with genotypes in the GWAS set
-combInfo = dplyr::inner_join(sigGenos, gwasHits, by = c('locus'))
-combInfo$mybetas = ifelse(combInfo$allele1 == combInfo$ALT, combInfo$beta, -combInfo$beta)
-myBetas = as.matrix(combInfo$mybetas)
-
-#center genotype matrix
-myG = t(as.matrix(combInfo[,6:1174]))
-#myG = t(as.matrix(sigGenos[,6:ncol(sigGenos)]))
-m = nrow(myG)
-myT = matrix(data = -1/m, nrow = m - 1, ncol = m)
-diag(myT) = (m - 1)/m
-myGcent = myT %*% myG
-
-#calculate breeding values
-allZ = myGcent %*% myBetas
-z1 = allZ[1:myM]
-z2 = allZ[(myM+1):length(allZ)]
-#z2cent = z2 - mean(z2)
-zcond = mean(z1) + sigma12 %*% solve(sigma22) %*%  z2 #calculating the conditional prediction for Z
-#zcond = zcond - mean(zcond)#center zcond
-#z1 = z1 - mean(z1)
-
-#project breeding values onto PCs and standardize
-myVa = calcVa(colMeans(myG)/2, myBetas)
-myBm = t(z1 - zcond) %*% as.matrix(cEigVectors) #z1 - zcond is the observed - expected under conditional
-myCm = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(2*cEigValues[x]*myVa))})
-
-#do omnibus test
-#myOmni = sapply(myRs, function(n){var0(myCm[1:n])})
-#myOmniPs = sapply(1:length(myOmni), function(x){pchisq(myOmni[x], df = myRs[x], lower.tail=F)})
-
-#do PC specific test -- here still using Va from the loci effect sizes and frequency
-#myPcPs = sapply(myCm, function(x){2*pnorm(-abs(myQm), mean=0, sd = 1)}) #normal dist
-myPcPs = sapply(myCm[1:pcmax], function(x){pchisq(var0(x), df=1, lower.tail=F)}) #chisq dist
-
-#Qpc version
-myCmprime = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(cEigValues[x]))})
-myQm = sapply(1:pcmax, function(n){
-    var0(myCmprime[n])/var0(myCmprime[(tailCutoff-50):tailCutoff])
-  })
-myPsprime = sapply(1:pcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
-
-outList = list(pc_p = myPcPs, va = myVa, muprime = zcond, bv = z1,cms = myCm, cmprime = myCmprime, pprime = myPsprime, n.sites = nrow(combInfo))
-return(outList)
-#return the data in a reasonable way
-}
-
-qxpceuroOut = lapply(1:22,Qxpceuro)
-qxpceuroOutcutoff = lapply(1:22, function(x){Qxpceuro(x, cutoff=1e-4)})
-qxpceuroOutcutoff2 = lapply(1:22, function(x){Qxpceuro(x, cutoff=1e-3)})
-save(qxpceuroOut, qxpceuroOutcutoff,  qxpceuroOutcutoff2, file = "data/qxpc_euro_output.rda")
+Running Qpc on traits
+```{r runqpc, eval=F}
+qpceuroOut = lapply(1:22,Qpceuro)
+save(qpceuroOut, file = "data/qpc_euro_output.rda")
 ```
 
 
 ```{r heatmap-figure}
-load('data/qxpc_euro_output.rda')
+load('data/qpc_euro_output.rda')
 
-pcpvalsprime = sapply(qxpceuroOut, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
-pcpvals = sapply(qxpceuroOut, function(x){x$pc_p})
-omnipvals = sapply(qxpceuroOut, function(x) {x$omni_p})
+pcpvals = sapply(qpceuroOut, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
 allqvals = get_q_values(pcpvals)
 
-#mysig = apply(allqvals, 2, function(x){ cut(x, c(0,0.001,0.01,0.05,0.1,1), labels=F)})
 layout(matrix(1, nrow=1, ncol=1))
 mysig2 =  cut((1:1000/1000), c(0,0.001,0.01,0.05,0.1,1)) #for legend
 par(mar=c(8,14,2,2), xpd=TRUE, mfrow=c(1,1))
 mycol = c(viridis(6, direction=1)[1:4], "white")
 image(allqvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
-#axis(1, at = c(0:5/5), labels = (0:5)*10)
-axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(allqvals)))
+axis(1, at=seq(0,1, length=nrow(pcpvals)), label=1:nrow(pcpvals))
 axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
 legend(-0.2,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
 
-#with omni added in -- won't qvalue these for now
-#layout(matrix(c(1,1,2,1,1,2), nrow=2, byrow=TRUE))
-#image(allqvals, col=mycol, xaxt="n", yaxt="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
-#axis(1, at = c(0:5/5), labels = c(1,(1:5)*10))
-#axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
-#legend(-0.2,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
-
-#image(omnipvals*44, col=mycol, xaxt="n", yaxt="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
-#axis(1, at = c(1:2/2), labels = myRs)
-
-#with the inflation factor
-allqvals = get_q_values(pcpvalsprime)
-layout(matrix(1, nrow=1, ncol=1))
-mysig2 =  cut((1:1000/1000), c(0,0.001,0.01,0.05,0.1,1)) #for legend
-par(mar=c(8,14,2,2), xpd=TRUE, mfrow=c(1,1))
-mycol = c(viridis(6, direction=1)[1:4], "white")
-image(allqvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
-#axis(1, at = c(0:5/5), labels = (0:5)*10)
-axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(allqvals)))
+image(pcpvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
+axis(1, at=seq(0,1, length=nrow(pcpvals)), label=1:nrow(pcpvals))
 axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
 legend(-0.2,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
 ```
-
-```{r fewersites}
-load('data/qxpc_euro_output.rda')
-niceTraitnames = sapply(traitNames, function(x){
-  strsplit(x, '0607')[[1]][1]
-})
-
-#how many snps are we using
-snpcountcutoff1e3 = sapply(qxpceuroOutcutoff2, function(x){x$n.sites})
-snpcountcutoff1e4 = sapply(qxpceuroOutcutoff, function(x){x$n.sites})
-snpcount = sapply(qxpceuroOut, function(x){x$n.sites})
-plot(snpcount, col = 'navy', bty="n", ylim = c(0, max(snpcount)*1.1), lwd=2)
-points(snpcountcutoff1e3, col = "darkgreen", lwd=2)
-points(snpcountcutoff1e4, col = "darkred", lwd=2)
-
-
-pcpvalsprime = sapply(qxpceuroOutcutoff2, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
-pcpvals = sapply(qxpceuroOutcutoff2, function(x){x$pc_p})
-allqvals = get_q_values(pcpvals)
-
-range(allqvals)
-hist(pcpvals, breaks=50, main = "cutoff of p< 1e-3")
-
-pcpvals = sapply(qxpceuroOutcutoff, function(x){x$pc_p})
-allqvals = get_q_values(pcpvals)
-range(allqvals)
-hist(pcpvals, breaks=50, main = "cutoff of p< 1e-4")
-
-
-#mysig = apply(allqvals, 2, function(x){ cut(x, c(0,0.001,0.01,0.05,0.1,1), labels=F)})
-layout(matrix(1, nrow=1, ncol=1))
-mysig2 =  cut((1:1000/1000), c(0,0.001,0.01,0.05,0.1,1)) #for legend
-par(mar=c(8,14,2,2), xpd=TRUE, mfrow=c(1,1))
-mycol = c(viridis(6, direction=1)[1:4], "white")
-image(allqvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
-#axis(1, at = c(0:5/5), labels = (0:5)*10)
-axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(allqvals)))
-axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
-legend(-0.2,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
-
-#with omni added in -- won't qvalue these for now
-#layout(matrix(c(1,1,2,1,1,2), nrow=2, byrow=TRUE))
-#image(allqvals, col=mycol, xaxt="n", yaxt="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
-#axis(1, at = c(0:5/5), labels = c(1,(1:5)*10))
-#axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
-#legend(-0.2,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
-
-#image(omnipvals*44, col=mycol, xaxt="n", yaxt="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
-#axis(1, at = c(1:2/2), labels = myRs)
-
-#with the inflation factor
-allqvals = get_q_values(pcpvalsprime)
-layout(matrix(1, nrow=1, ncol=1))
-mysig2 =  cut((1:1000/1000), c(0,0.001,0.01,0.05,0.1,1)) #for legend
-par(mar=c(8,14,2,2), xpd=TRUE, mfrow=c(1,1))
-mycol = c(viridis(6, direction=1)[1:4], "white")
-image(allqvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
-#axis(1, at = c(0:5/5), labels = (0:5)*10)
-axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(allqvals)))
-axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
-legend(-0.2,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
-
-```
-
 
 ```{r pccor-figure, eval=F}
 par(mar=c(6,6,3,3), mfrow=c(1,1))
