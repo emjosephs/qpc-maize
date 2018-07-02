@@ -11,7 +11,7 @@ output:
 
 This notebook has code for running a form of Q<sub>pc</sub> analysis using the Major-Goodman GWAS panel and detecting selection in the European landraces.
 
-#Load in the kinship matrix and make a conditional matrix 
+# Load in the kinship matrix and make a conditional matrix 
 
 ```r
 load('data/euro.282.E.rda')
@@ -46,7 +46,7 @@ par(mfrow=c(1,2), mar=c(5,5,1,1))
 pcmax = which(sumexp > 0.30)[1]
 ```
 
-#Run Qpc
+# Run Qpc
 The function is in qpctools/R/Qpceuro
 
 ```r
@@ -54,7 +54,7 @@ qpceuroOut = lapply(1:22,Qpceuro)
 save(qpceuroOut, file = "data/qpc_euro_output.rda")
 ```
 
-#Look at results
+# Look at results
 
 ```r
 load('data/qpc_euro_output.rda')
@@ -112,7 +112,7 @@ legend('bottomleft', levels(as.factor(eurodat$Type)), col = as.factor(eurodat$Ty
 
 
 
-#Running the original version of the test.
+# Running the original version of the test.
 The function is in qpctools/R/Qpceuro-nocond.R
 
 ```r

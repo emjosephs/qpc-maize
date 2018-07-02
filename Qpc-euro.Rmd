@@ -18,7 +18,7 @@ setwd('~/Documents/qpc/') #sorry world
 
 This notebook has code for running a form of Q<sub>pc</sub> analysis using the Major-Goodman GWAS panel and detecting selection in the European landraces.
 
-#Load in the kinship matrix and make a conditional matrix 
+# Load in the kinship matrix and make a conditional matrix 
 ```{r kmatrix}
 load('data/euro.282.E.rda')
 
@@ -54,14 +54,14 @@ pcmax = which(sumexp > 0.30)[1]
 
 ```
 
-#Run Qpc
+# Run Qpc
 The function is in qpctools/R/Qpceuro
 ```{r runqpc, eval=F}
 qpceuroOut = lapply(1:22,Qpceuro)
 save(qpceuroOut, file = "data/qpc_euro_output.rda")
 ```
 
-#Look at results
+# Look at results
 ```{r heatmap-figure}
 load('data/qpc_euro_output.rda')
 
@@ -127,7 +127,7 @@ legend('bottomleft', levels(as.factor(eurodat$Type)), col = as.factor(eurodat$Ty
 
 
 
-#Running the original version of the test.
+# Running the original version of the test.
 The function is in qpctools/R/Qpceuro-nocond.R
 ```{r no-conditional-test, eval=F}
 #
@@ -159,9 +159,6 @@ image(ncpvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.0
 axis(1, at=seq(0,1, length=nrow(ncpvals)), label=1:nrow(ncpvals))
 axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
 legend(-0.2,-0.15, c('P value',levels(mysig2)), fill=c('white',mycol), border=c('white',rep('black',5)), bty="n", horiz=T)
-
-
-
 
 
 ````
