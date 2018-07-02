@@ -84,34 +84,6 @@ legend(-0.2,-0.15, c('P value',levels(mysig2)), fill=c('white',mycol), border=c(
 ![](Qpc-euro_files/figure-html/heatmap-figure-2.png)<!-- -->
 
 
-
-
-# Where are landraces from
-
-```r
-#lat long plot
-library(maps)
-load("data/euro_qpc_data.rda")
-eurodat = read.table('data/eurolandraceinfo.csv', sep=',', head=T, stringsAsFactors=F)
-
-map("world", xlim=c(1.5*min(eurodat$Longitude),1.2*max(eurodat$Longitude)), ylim=c(0.85*min(eurodat$Latitude),1.05*max(eurodat$Latitude)), fill=T, col="azure")
-points(eurodat$Longitude, eurodat$Latitude, col = magma(6)[4], lwd=4)
-```
-
-![](Qpc-euro_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
-
-```r
-palette(magma(3))
-par(xpd=TRUE)
-map("world", xlim=c(1.5*min(eurodat$Longitude),1.2*max(eurodat$Longitude)), ylim=c(0.9*min(eurodat$Latitude),1.05*max(eurodat$Latitude)), fill=T, col="azure")
-points(eurodat$Longitude, eurodat$Latitude, col = as.factor(eurodat$Type), lwd=4)
-legend('bottomleft', levels(as.factor(eurodat$Type)), col = as.factor(eurodat$Type), pch=1, pt.lwd=4, bty="n")
-```
-
-![](Qpc-euro_files/figure-html/unnamed-chunk-1-2.png)<!-- -->
-
-
-
 # Running the original version of the test.
 The function is in qpctools/R/Qpceuro-nocond.R
 
@@ -142,7 +114,7 @@ axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
 legend(-0.2,-0.15, c('FDR',levels(mysig2)), fill=c('white',mycol), border=c('white',rep('black',5)), bty="n", horiz=T)
 ```
 
-![](Qpc-euro_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+![](Qpc-euro_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
 
 ```r
 image(ncpvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
@@ -151,5 +123,24 @@ axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
 legend(-0.2,-0.15, c('P value',levels(mysig2)), fill=c('white',mycol), border=c('white',rep('black',5)), bty="n", horiz=T)
 ```
 
-![](Qpc-euro_files/figure-html/unnamed-chunk-2-2.png)<!-- -->
+![](Qpc-euro_files/figure-html/unnamed-chunk-1-2.png)<!-- -->
+
+
+
+
+# Map of the landraces
+
+```r
+#lat long plot
+library(maps)
+load("data/euro_qpc_data.rda")
+eurodat = read.table('data/eurolandraceinfo.csv', sep=',', head=T, stringsAsFactors=F)
+
+map("world", xlim=c(1.5*min(eurodat$Longitude),1.2*max(eurodat$Longitude)), ylim=c(0.85*min(eurodat$Latitude),1.05*max(eurodat$Latitude)), fill=T, col="azure")
+points(eurodat$Longitude, eurodat$Latitude, col = magma(6)[4], lwd=4)
+```
+
+![](Qpc-euro_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+
+
 
