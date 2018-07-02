@@ -1,0 +1,39 @@
+Code,Name,More_info,Latitude,Longitude,Country,Source,Number,Type
+AL,Altreier AL Altrei,South Tyrol,46.28333,11.36667,IT,1,24,Dent
+AN,Andoain AN Andoain,Basque Country,43.21667,-2.01667,ES,2,24,Flint
+BA,Barisis BA Barisis,Nord-Pas-de-Calais-Picardie,49.57860,3.32810,FR,3,24,Flint
+BU,Bugard BU Bugard,Languedoc-Roussillon-Midi-Pyrénées,43.25890,0.31470,FR,4,22,Flint
+CA,Castellote CA Castellote,Aragon,40.80000,-0.31667,ES,2,24,Dent
+CO ,Colmar CO Colmar,Alsace-Champagne-Ardenne-Lorraine,48.08170,7.35560,FR,3,24,Flint
+FL,Fleimstal FL Fiemme Valley,South Tyrol,46.28333,11.36667,IT,1,24,Flint
+GA,Gazost GA Gazost,Languedoc-Roussillon-Midi-Pyrénées,43.03000,0.01000,FR,3,24,Flint
+GB,Gelber Badischer Landmais GB Upper Rhine valley,,48.85900,8.21000,DE,4,24,Flint
+GL,Gleisdorfer GL Gleisdorf,Styria,47.10700,15.70900,AT,5,24,Dent
+KL,Kemater Landmais KL Kematen,Tyrol,47.25500,11.27400,AT,6,24,Flint
+KN,Knillis KN Styria,,47.25300,15.69400,AT,5,24,Dent
+KR,Krajova c29 KR Craiova,Moravské Lieskové,48.20000,17.35000,SVK,7,24,Flint
+LC,Lacaune LC Lacaune,Languedoc-Roussillon-Midi-Pyrénées,43.55000,2.58300,FR,3,24,Flint
+LL,Lalin LL Lalín,Galicia,42.66100,-8.11100,ES,2,24,Flint
+LD,Lucq de Bearn LD Lucq-de-Béarn,Aquitaine-Limousin-Poitou-Charentes,43.28700,-0.65900,FR,3,24,Flint
+MD,Mahndorfer MD Northern Germany,,52.06100,11.09400,DE,4,24,Flint
+MB,Maleksberger MB Northern Germany,,53.98200,10.25300,DE,8,24,Flint
+ML,Millette du Lauragais 2 ML Lauragais,Languedoc-Roussillon-Midi-Pyrénées,43.07200,2.38100,FR,3,24,Flint
+MO,Moncassin MO Moncassin,Languedoc-Roussillon-Midi-Pyrénées,43.45400,0.47900,FR,3,24,Flint
+ND,Nostrano dell Isola ND Northern Italy,,44.61200,8.24200,IT,3,24,Flint
+OM,Oberhuber Martha OM Innsbruck,Tyrol,47.26900,11.41400,AT,1,24,Flint
+OE,Österreichische Landsorte OE Upper Austria,,48.05800,12.76900,AT,9,24,Dent
+PE,Petkuser Ferdinand Rot PE Northeastern Germany,,51.98100,13.34900,DE,10,24,Flint
+PF,Pfarrkirchner PF Pfarrkirchen,Bavaria,48.41900,12.94000,DE,4,24,Flint
+PL,Polnischer Landmais PL Poland,,51.00000,18.50000,PL,8,24,Dent
+RM,Rheintaler Monsheim RM Monsheim,Rhineland-Palatinate,49.63400,8.30100,DE,8,24,Flint
+RT,Rheintaler St. Gallen RT St. Gallen,St. Gallen,47.42400,9.37100,CH,4,24,Flint
+RO,Rottaler RO Rottal-Inn,Bavaria,48.39100,12.94500,DE,3,24,Flint
+RD,Roux de Chalosse RD Chalosse,Aquitaine-Limousin-Poitou-Charentes,43.63100,-0.82800,FR,3,24,Flint
+SA,Santiago SA Santiago de Compostela,Galicia,42.87800,-8.54500,ES,2,23,Flint
+SC,Schindelmeiser SC Northeastern Germany,,52.13100,13.00000,DE,4,23,Flint
+SO,Sornay SO Sornay,Bourgogne-Franche-Comté,47.27890,5.69860,FR,11,23,Flint
+SF,Strenzfelder SF Southeastern Germany,,51.80400,11.71000,DE,4,23,Flint
+TR,Tremesino TR Mediterranean ES 2 24,,37.39600,-5.63000,ES,NA,NA,Dent
+TU,Tui TU Tui,Galicia,42.04900,-8.64700,ES,2,24,Flint
+VI,Viana VI Viana,Galicia,42.18000,-7.11300,ES,2,24,Flint
+WA,Wantzenau WA La Wantzenau,Alsace-Champagne-Ardenne-Lorraine,48.65000,7.81700,FR,3,24,Flint

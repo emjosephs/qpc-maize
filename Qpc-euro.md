@@ -7,19 +7,13 @@ output:
     keep_md: yes
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-library(dplyr)
-library(viridis)
-library(qpctools)
-library(qvalue)
-setwd('~/Documents/qpc/') #sorry world
-```
+
 
 This notebook has code for running a form of Q<sub>pc</sub> analysis using the Major-Goodman GWAS panel and detecting selection in the European landraces.
 
 #Load in the kinship matrix and make a conditional matrix 
-```{r kmatrix}
+
+```r
 load('data/euro.282.E.rda')
 
 
@@ -38,11 +32,11 @@ traitNames = read.table('data/blup.names', stringsAsFactors=F)$V1
 niceTraitnames = sapply(traitNames, function(x){
   strsplit(x, '0607')[[1]][1]
 })
-
 ```
 
 # Calculate cutoffs for PCs
-```{r pccutoffs}
+
+```r
 #get cutoffs for pcs based on % variation explained
 varexp = cEigValues/sum(cEigValues)
 sumexp = sapply(1:length(varexp), function(x){sum(varexp[1:x])})
@@ -50,19 +44,19 @@ par(mfrow=c(1,2), mar=c(5,5,1,1))
 
 #get cutoffs for how many pcs to look at
 pcmax = which(sumexp > 0.30)[1]
-
-
 ```
 
 #Run Qpc
 The function is in qpctools/R/Qpceuro
-```{r runqpc, eval=F}
+
+```r
 qpceuroOut = lapply(1:22,Qpceuro)
 save(qpceuroOut, file = "data/qpc_euro_output.rda")
 ```
 
 #Look at results
-```{r heatmap-figure}
+
+```r
 load('data/qpc_euro_output.rda')
 
 pcpvals = sapply(qpceuroOut, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
@@ -76,39 +70,25 @@ image(allqvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.
 axis(1, at=seq(0,1, length=nrow(pcpvals)), label=1:nrow(pcpvals))
 axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
 legend(-0.2,-0.15, c('FDR',levels(mysig2)), fill=c('white',mycol), border=c('white',rep('black',5)), bty="n", horiz=T)
+```
 
+![](Qpc-euro_files/figure-html/heatmap-figure-1.png)<!-- -->
+
+```r
 image(pcpvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
 axis(1, at=seq(0,1, length=nrow(pcpvals)), label=1:nrow(pcpvals))
 axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
 legend(-0.2,-0.15, c('P value',levels(mysig2)), fill=c('white',mycol), border=c('white',rep('black',5)), bty="n", horiz=T)
-
 ```
 
-
-```{r latdata, eval=F, include=F}
-par(mar=c(6,6,3,3), mfrow=c(1,1))
-
-#read in data about the landraces
-eurodat = read.table('data/eurolandraceinfo.csv', sep=',', head=T, stringsAsFactors=F)
-euronames = read.table('data/merged263Landraces.names', stringsAsFactors=F)[1:906,]
+![](Qpc-euro_files/figure-html/heatmap-figure-2.png)<!-- -->
 
 
-#get the conditional expectations for polygenic values
-zconds = sapply(qpceuroOut, function(x){x$muprime})
-colnames(zconds) = niceTraitnames
-breedingvals = sapply(qpceuroOut, function(x){x$bv})
-colnames(breedingvals) = niceTraitnames
 
-zdf = data.frame(names=euronames, breedingvals-zconds, stringsAsFactors = F)
-zdf$Code = sapply(zdf$names, function(x){substr(x, 1,2)})
-mymerge = dplyr::left_join(zdf, eurodat, by="Code")
-
-save(allqvals, mymerge, niceTraitnames, sigma11, file="data/euro_qpc_data.rda")
-
-```
 
 # Where are landraces from
-```{r}
+
+```r
 #lat long plot
 library(maps)
 load("data/euro_qpc_data.rda")
@@ -116,30 +96,36 @@ eurodat = read.table('data/eurolandraceinfo.csv', sep=',', head=T, stringsAsFact
 
 map("world", xlim=c(1.5*min(eurodat$Longitude),1.2*max(eurodat$Longitude)), ylim=c(0.85*min(eurodat$Latitude),1.05*max(eurodat$Latitude)), fill=T, col="azure")
 points(eurodat$Longitude, eurodat$Latitude, col = magma(6)[4], lwd=4)
+```
 
+![](Qpc-euro_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
+
+```r
 palette(magma(3))
 par(xpd=TRUE)
 map("world", xlim=c(1.5*min(eurodat$Longitude),1.2*max(eurodat$Longitude)), ylim=c(0.9*min(eurodat$Latitude),1.05*max(eurodat$Latitude)), fill=T, col="azure")
 points(eurodat$Longitude, eurodat$Latitude, col = as.factor(eurodat$Type), lwd=4)
 legend('bottomleft', levels(as.factor(eurodat$Type)), col = as.factor(eurodat$Type), pch=1, pt.lwd=4, bty="n")
-
 ```
+
+![](Qpc-euro_files/figure-html/unnamed-chunk-1-2.png)<!-- -->
 
 
 
 #Running the original version of the test.
 The function is in qpctools/R/Qpceuro-nocond.R
-```{r no-conditional-test, eval=F}
+
+```r
 #
 load('data/euroOnlyK.rda')
 
 ### function for running Qpc on European polygenic scores without the conditional test
 ncEuroOut = lapply(1:22,Qpceuro_nocond)
 save(ncEuroOut, file="data/qpc-euro-nc.rda")
-
 ```
 
-```{r}
+
+```r
 load('data/qpc-euro-nc.rda')
 
 ### look at the output
@@ -154,15 +140,16 @@ image(ncqvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.0
 axis(1, at=seq(0,1, length=nrow(ncpvals)), label=1:nrow(ncpvals))
 axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
 legend(-0.2,-0.15, c('FDR',levels(mysig2)), fill=c('white',mycol), border=c('white',rep('black',5)), bty="n", horiz=T)
+```
 
+![](Qpc-euro_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+
+```r
 image(ncpvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
 axis(1, at=seq(0,1, length=nrow(ncpvals)), label=1:nrow(ncpvals))
 axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
 legend(-0.2,-0.15, c('P value',levels(mysig2)), fill=c('white',mycol), border=c('white',rep('black',5)), bty="n", horiz=T)
+```
 
-
-
-
-
-````
+![](Qpc-euro_files/figure-html/unnamed-chunk-2-2.png)<!-- -->
 
