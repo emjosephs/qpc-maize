@@ -55,7 +55,12 @@ pcmax = which(sumexp > 0.30)[1]
 ```
 
 # Run Qpc
-The function is in qpctools/R/Qpceuro
+The function is in qpctools/R/QpcEuro.R
+```{bash}
+cat qpctools/R/QpcEuro.R
+```
+
+
 ```{r runqpc, eval=F}
 qpceuroOut = lapply(1:22,Qpceuro)
 save(qpceuroOut, file = "data/qpc_euro_output.rda")
@@ -87,6 +92,11 @@ legend(-0.2,-0.15, c('P value',levels(mysig2)), fill=c('white',mycol), border=c(
 
 # Running the original version of the test.
 The function is in qpctools/R/Qpceuro-nocond.R
+```{bash}
+cat qpctools/R/QpcEuro-nocond.R
+```
+
+
 ```{r no-conditional-test, eval=F}
 #
 load('data/euroOnlyK.rda')
