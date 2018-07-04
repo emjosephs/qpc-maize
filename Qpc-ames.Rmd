@@ -13,11 +13,7 @@ library(dplyr)
 library(viridis)
 library(qpctools)
 library(qvalue)
-setwd('~/Documents/polygenic-maize/') #sorry world
-
-calcVa <-function(afs, betas){
-  return(sum(2*afs*(1-afs)*(betas^2)))
-}
+setwd('~/Documents/qpc/') #sorry world
 
 ```
 
@@ -25,8 +21,6 @@ This notebook has code for running a form of Q<sub>xpc</sub> analysis using the 
 
 First, load in the kinship matrix and make a conditional matrix
 ```{r kmatrix}
-#myF = read.table('data/ames.281.june14.gmriE.5e4.K')
-#save(myF, file="data/ames.281E.K.rda")
 load('data/ames.281E.K.rda')
 
 sigma11 = as.matrix(myF[1:2704,1:2704])
@@ -38,6 +32,7 @@ sigma.cond = sigma11 - sigma12 %*% solve(sigma22) %*% sigma21
 
 
 ```{r make-eigens, eval=F}
+### This code makes a bunch of secondary sets of eigenvalues and saves them.
 regEig = eigen(myF)
 #write.table(regEig$vectors,file='data/ames.reg.eigenvectors', quote=F, row.names=F, col.names=F)
 #write.table(regEig$values,file='data/ames.reg.eigenvalues', quote=F, row.names=F, col.names=F)
@@ -46,17 +41,19 @@ save(regEig, file = 'data/ames.281E.regeig.rda')
 condEig = eigen(sigma.cond)
 save(condEig, file = 'data/ames.281E.condeig.rda')
 
-amesOnly = read.table('data/ames.june14.gmriE.5e4.K')
+load('data/amesOnly.E.K.rda')
 amesEig = eigen(amesOnly)
 save(amesEig, file='data/amesOnly.eig.rda')
 
 ```
 
 ```{r read-eigens}
+##read in the eigen data for the conditional amtrix
 load('data/ames.281E.condeig.rda')
 cEigVectors = condEig$vectors
 cEigValues = condEig$values
 
+#read in trait names
 traitNames = read.table('data/blup.names', stringsAsFactors=F)$V1
 
 ```
@@ -67,77 +64,22 @@ varexp = cEigValues/sum(cEigValues)
 sumexp = sapply(1:length(varexp), function(x){sum(varexp[1:x])})
 par(mfrow=c(1,2), mar=c(5,5,1,1))
 
-#get cutoffs for omnibus statistic
-myRs = c(which(sumexp > .05)[1], which(sumexp > .3)[1])
-myRs
-
 #get cutoffs for how many pcs to look at
 pcmax = which(sumexp > 0.3)[1]
 
 #remove the last end of PCs 
 tailCutoff = round(.9*length(cEigValues))
-
-par(mfrow=c(1,2), mar=c(5,5,1,1))
-plot(varexp, bty="n", xlab = "PC Index", ylab = "variation explained by each eigenvector")
-plot(sumexp,bty="n", xlab = "PC Index", ylab = "cumulative variation explained by efirst X eigenvectors")
-abline(v=c(myRs, tailCutoff), col = viridis(6)[2:4])
-
 ```
 
-
-```{r filtergwasresults, eval=F}
-
-linkm = read.table('data/FileS3.csv', header=T)
-library('IRanges')
-library('GenomicRanges')
-myranges = sapply(1:10, function(i){
-  mychr = dplyr::filter(linkm, chromosome==i)
-  windowStarts <- mychr[seq(1, nrow(mychr), 5),]
-  windowEnds <- mychr[c(seq(1, nrow(mychr)-5, 5)+5,nrow(mychr) ),]
-  mywin = IRanges(start=windowStarts$position, end=windowEnds$position)
-  return(mywin)})
-ldwindows = GRanges()
-for (i in 1:10){
-  # chrld = GRanges(i, strand = "+",myranges[[i]])
-  suppressWarnings(ldwindows <- append(ldwindows,chrld))
-}
-
-blups = read.table('../maizeqx/smallFiles/blups0607', stringsAsFactors=F)
-
-ldprune <- function(mytrait){
-set.seed(1)
-mytest = processGemmaOutput(paste('../maizeqx/bigFiles/281_results/',mytrait,'.281.assoc.txt',sep=""))
-mycutoff = 0.005
-mysig = dplyr::filter(mytest, p_lrt < mycutoff)
-sig.ranges = GRanges(seqname = mysig$chr, ranges = IRanges(start=mysig$ps, width=1))
-myOverlaps = as.matrix(findOverlaps(ldwindows,sig.ranges))
-mysig$myIndex = as.numeric(row.names(mysig))
-myTop = dplyr::inner_join(as.data.frame(myOverlaps), mysig, by = c("subjectHits" = "myIndex")) %>% group_by(queryHits) %>% filter(p_lrt == min(p_lrt)) %>% sample_n(1) 
-write.table(myTop$rs, file=paste('data/281_gwas_results/ldfiltered.',mytrait, sep=""),quote=FALSE, row.names=FALSE, col.names=FALSE)
-write.table(myTop, file=paste('data/281_gwas_results/ldfiltered.',mytrait,'assoc.txt', sep=""),quote=FALSE, row.names=FALSE, col.names=FALSE)
-if (nrow(myTop)> 0){return(mytrait)}
-}
-
-traitsWithHits <- sapply(blups$V1, ldprune) #LD prune and write out loci
-
-pullSigs <- function(myI){
-   myHits = read.table(paste('data/281_gwas_results/ldfiltered.',myI,'assoc.txt',sep=""), stringsAsFactors=F)
-  names(myHits) = c('x','y',strsplit('chr     rs      ps      n_miss  allele1 allele0 af      beta    se      l_remle l_mle   p_wald  p_lrt   p_score', split=' +')[[1]])
-  system(paste('head -n 1 data/ames.281.june14.geno95.maf01.randomimpute > data/281_gwas_results/sigSnps.',myI,sep=""))
-  sapply(myHits$rs, function(x) {system(paste('grep ',x,' data/ames.281.june14.geno95.maf01.randomimpute >> data/281_gwas_results/sigSnps.',myI, sep=""))})
-}
-
-test = sapply(blups$V1,pullSigs)
-```
 
 ```{r runqxpc}
 myI = traitNames[6]
 myM=2704
-Qxpcames <- function(myI, myM = 2704){
+Qxpcames <- function(myI, myM = 2704, gwasPrefix = 'data/281_gwas_results/ldfiltered.', sigPrefix='data/281_gwas_results/sigSnps.'){
 #read in data
-gwasHits = read.table(paste('data/281_gwas_results/ldfiltered.',myI,'assoc.txt',sep=""), stringsAsFactors=F)
+gwasHits = read.table(paste(gwasPrefix,myI,'assoc.txt',sep=""), stringsAsFactors=F)
 names(gwasHits) = c('x','y',strsplit('chr     rs      ps      n_miss  allele1 allele0 af      beta    se      l_remle l_mle   p_wald  p_lrt   p_score', split=' +')[[1]])
-sigGenos = read.table(paste('data/281_gwas_results/sigSnps.',myI, sep=""), header=T, stringsAsFactors=F)
+sigGenos = read.table(paste(sigPrefix,myI, sep=""), header=T, stringsAsFactors=F)
 
 #combine table of GWAS results with genotypes in the GWAS set
 combData = dplyr::left_join(sigGenos, gwasHits, by = c('locus'='rs'))
