@@ -51,7 +51,7 @@ allZ = myGcent %*% myBetas
 z1 = allZ[1:myM]
 z2 = allZ[(myM+1):length(allZ)]
 #z2cent = z2 - mean(z2)
-zcond = mean(z1) + sigma12 %*% solve(sigma22) %*%  z2 #calculating the conditional prediction for Z
+zcond = mean(allZ) + sigma12 %*% solve(sigma22) %*%  z2 #calculating the conditional prediction for Z
 #zcond = zcond - mean(zcond)#center zcond
 #z1 = z1 - mean(z1)
 

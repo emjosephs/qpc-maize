@@ -72,12 +72,11 @@ tailCutoff = round(.9*length(cEigValues))
 ```
 
 
-```{r runqxpc}
+```{r runqxpc, eval=F}
 myI = traitNames[6]
-myM=2704
-Qxpcames <- function(myI, myM = 2704, gwasPrefix = 'data/281_gwas_results/ldfiltered.', sigPrefix='data/281_gwas_results/sigSnps.'){
+Qpcames <- function(myI, myM = 2704, gwasPrefix = 'data/281-gwas-results/ldfiltered.', sigPrefix='data/281-gwas-results/sigSnps.'){
 #read in data
-gwasHits = read.table(paste(gwasPrefix,myI,'assoc.txt',sep=""), stringsAsFactors=F)
+gwasHits = read.table(paste(gwasPrefix,myI,sep=""), stringsAsFactors=F)
 names(gwasHits) = c('x','y',strsplit('chr     rs      ps      n_miss  allele1 allele0 af      beta    se      l_remle l_mle   p_wald  p_lrt   p_score', split=' +')[[1]])
 sigGenos = read.table(paste(sigPrefix,myI, sep=""), header=T, stringsAsFactors=F)
 
@@ -96,12 +95,10 @@ myGcent = myT %*% myG
 allZ = myGcent %*% myBetas
 z1 = allZ[1:myM]
 z2 = allZ[(myM+1):length(allZ)]
-zcond = mean(z1) + sigma12 %*% solve(sigma22) %*%  z2 #calculating the conditional prediction for Z
+zcond = mean(z1) + sigma12 %*% solve(sigma22) %*%  z2 #calculating the conditional prediction for Z (j)
 
 #project breeding values onto PCs and standardize
-myVa = calcVa(colMeans(myG)/2, myBetas)
 myBm = t(z1 - zcond) %*% as.matrix(cEigVectors) #z1 - zcond is the observed - expected under conditional
-myCm = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(2*cEigValues[x]*myVa))})
 
 myCmprime = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(cEigValues[x]))})
 myQm = sapply(1:pcmax, function(n){
@@ -109,20 +106,12 @@ myQm = sapply(1:pcmax, function(n){
   })
 myPsprime = sapply(1:pcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
 
-
-#do omnibus test
-myOmni = sapply(myRs, function(n){var0(myCm[1:n])})
-myOmniPs = sapply(1:length(myOmni), function(x){pchisq(myOmni[x], df = myRs[x], lower.tail=F)})
-
-#do PC specific test -- here still using Va from the loci effect sizes and frequency
-#myPcPs = sapply(myCm, function(x){2*pnorm(-abs(myQm), mean=0, sd = 1)}) #normal dist
-myPcPs = sapply(myCm[1:pcmax], function(x){pchisq(var0(x), df=1, lower.tail=F)}) #chisq dist
-
-outList = list(omni_p = myOmniPs, pc_p = myPcPs, va = myVa, muprime = zcond, cms = myCm, cmprime = myCmprime, pprime = myPsprime)
+outList = list(muprime = zcond, cmprime = myCmprime, pprime = myPsprime)
 #return the data in a reasonable way
 }
 
-qxpcamesOut = lapply(traitNames,Qxpcames)
+qpcamesOut = lapply(traitNames,Qpcames)
+save(qpcamesOut, file='data/qpc-ames-output.rda)
 
 ```
 
