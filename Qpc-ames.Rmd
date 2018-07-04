@@ -72,9 +72,16 @@ tailCutoff = round(.9*length(cEigValues))
 ```
 
 
-```{r runqxpc, eval=F}
+```{r runqxpc, eval=T}
 myI = traitNames[6]
-Qpcames <- function(myI, myM = 2704, gwasPrefix = 'data/281-gwas-results/ldfiltered.', sigPrefix='data/281-gwas-results/sigSnps.'){
+Qpcames <- function(myI, myM = 2704, gwasPrefix = 'data/281-gwas-results/ldfiltered.', sigPrefix='data/281-gwas-results/sigSnps.'
+                    mysigma=myF, mypcmax = pcmax, myLambda = cEigValues, myU = cEigVectors){
+
+#calculate matrices
+sigma22 = as.matrix(mysigma[(myM + 1):dim(mysigma)[1], (myM + 1):dim(mysigma)[1]])
+sigma12 = as.matrix(myF[1:myM, (myM + 1):dim(mysigma)[1]])
+tailCutoff = round(myM*0.9)
+
 #read in data
 gwasHits = read.table(paste(gwasPrefix,myI,sep=""), stringsAsFactors=F)
 names(gwasHits) = c('x','y',strsplit('chr     rs      ps      n_miss  allele1 allele0 af      beta    se      l_remle l_mle   p_wald  p_lrt   p_score', split=' +')[[1]])
@@ -95,23 +102,23 @@ myGcent = myT %*% myG
 allZ = myGcent %*% myBetas
 z1 = allZ[1:myM]
 z2 = allZ[(myM+1):length(allZ)]
-zcond = mean(z1) + sigma12 %*% solve(sigma22) %*%  z2 #calculating the conditional prediction for Z (j)
+zcond = mean(allZ) + sigma12 %*% solve(sigma22) %*%  z2 #calculating the conditional prediction for Z (j)
 
 #project breeding values onto PCs and standardize
-myBm = t(z1 - zcond) %*% as.matrix(cEigVectors) #z1 - zcond is the observed - expected under conditional
+myBm = t(z1 - zcond) %*% as.matrix(myU) #z1 - zcond is the observed - expected under conditional
 
-myCmprime = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(cEigValues[x]))})
-myQm = sapply(1:pcmax, function(n){
+myCmprime = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(myLambda[x]))})
+myQm = sapply(1:mypcmax, function(n){
     var0(myCmprime[n])/var0(myCmprime[(tailCutoff-50):tailCutoff])
   })
-myPsprime = sapply(1:pcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
+myPsprime = sapply(1:mypcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
 
 outList = list(muprime = zcond, cmprime = myCmprime, pprime = myPsprime)
 #return the data in a reasonable way
 }
 
 qpcamesOut = lapply(traitNames,Qpcames)
-save(qpcamesOut, file='data/qpc-ames-output.rda)
+save(qpcamesOut, file='data/qpc-ames-output.rda')
 
 ```
 
@@ -121,11 +128,9 @@ niceTraitnames = sapply(traitNames, function(x){
   strsplit(x, '0607')[[1]][1]
 })
 
-pcpvals = sapply(qxpcamesOut, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
-#omnipvals = sapply(qxpcamesOut, function(x) {x$omni_p})
+pcpvals = sapply(qpcamesOut, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
 allqvals = get_q_values(pcpvals)
 
-#mysig = apply(allqvals, 2, function(x){ cut(x, c(0,0.001,0.01,0.05,0.1,1), labels=F)})
 layout(matrix(1, nrow=1, ncol=1))
 mysig2 =  cut((1:1000/1000), c(0,0.001,0.01,0.05,0.1,1)) #for legend
 par(mar=c(8,14,2,2), xpd=TRUE, mfrow=c(1,1))
@@ -146,12 +151,6 @@ legend(-0.2,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
 ```
 
 
-```{r pccor-figure}
-par(mar=c(5,5,2,2))
-
-
-```
-
 
 Running the original version of the test.
 ```{r no-conditional-test}
@@ -160,11 +159,11 @@ load('data/amesOnly.eig.rda')
 
 myI = traitNames[6]
 myM=2704
-Qxpcames_nocond <- function(myI, myM = 2704){
+Qpcames-nocond <- function(myI, myM = 2704, gwasPrefix = 'data/281-gwas-results/ldfiltered.', sigPrefix='data/281-gwas-results/sigSnps.'){
 #read in data
-gwasHits = read.table(paste('data/281_gwas_results/ldfiltered.',myI,'assoc.txt',sep=""), stringsAsFactors=F)
+gwasHits = read.table(paste(gwasPrefix,myI,sep=""), stringsAsFactors=F)
 names(gwasHits) = c('x','y',strsplit('chr     rs      ps      n_miss  allele1 allele0 af      beta    se      l_remle l_mle   p_wald  p_lrt   p_score', split=' +')[[1]])
-sigGenos = read.table(paste('data/281_gwas_results/sigSnps.',myI, sep=""), header=T, stringsAsFactors=F)
+sigGenos = read.table(paste(sigPrefix,myI, sep=""), header=T, stringsAsFactors=F)
 
 #combine table of GWAS results with genotypes in the GWAS set
 combData = dplyr::left_join(sigGenos, gwasHits, by = c('locus'='rs'))
