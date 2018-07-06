@@ -1,0 +1,376 @@
+---
+title: "power_simulations.Rmd"
+author: "em"
+date: "June 1, 2018"
+output:
+  html_document:
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library('LaCroixColoR')
+library(viridis)
+library(dplyr)
+library(qpctools)
+library(qvalue)
+setwd('~/Documents/polygenic-maize/') #sorry world
+
+```
+
+Doing power simulations where we add selection along a latitudinal gradient.
+
+First need to make new allele frequencies at GWAS-detected SNPs that include selection. 
+```{r, eval=F}
+
+#load in data
+myI = 1
+myalpha = 0.01
+gwasPrefix = 'data/simFiles/ldfiltered.euro.assoc.'
+genoPrefix = 'data/simFiles/sigSnps.euro.'
+
+add_selection_to_pop <- function(pop, latitude, alpha, betas, genicVar){ #alpha is strength of selection, locus is a list of allele frequencies, latitude
+  popfreqs = as.matrix(pop[-1])
+  newfreq = popfreqs +  latitude * t(as.matrix(betas)) * alpha * genicVar
+  boundedfreq = sapply(newfreq, myBound2)
+  return(boundedfreq)
+  }
+
+myBound2 = function(x){
+if (x>2) {x=2}
+if (x<0) {x=0}
+  return(x)
+}
+
+#myalpha = 0.001
+getSelFreqs <- function(myI, myalpha = 0.01){
+gwasHits = read.table(paste(gwasPrefix,myI,sep=""), stringsAsFactors=F)
+names(gwasHits) = c('x','y',strsplit('chr     rs      ps      n_miss  allele1 allele0 af      beta    se      l_remle l_mle   p_wald  p_lrt   p_score', split=' +')[[1]])
+gwasHits$locus =  sapply(gwasHits$rs, function(x){paste('s',gsub(":","_",x),sep="")})
+sigGenos = read.table(paste(genoPrefix,myI, sep=""), header=T, stringsAsFactors=F)
+combInfo = dplyr::left_join(sigGenos, gwasHits, by = 'locus')
+combInfo$mybetas = ifelse(combInfo$allele1 == combInfo$ALT, combInfo$beta, -combInfo$beta)
+
+#group genotypes by landrace and calculate mean alternate copy number
+eurolines = data.frame(pop = sapply(colnames(combInfo[,6:911]), function(x){substr(x, 1, 2)}), t(combInfo[,6:911]), stringsAsFactors = F)
+eurolines$pop = sapply(row.names(eurolines), function(x){substr(x, 1, 2)})
+europops = eurolines %>% group_by(pop) %>% summarise_all(funs(mean))
+
+#get latitude
+eurodat = read.table('data/eurolandraceinfo.csv', sep=',', head=T, stringsAsFactors=F)
+eurolat = eurodat$Latitude - mean(eurodat$Latitude)
+names(eurolat) = eurodat$Code
+
+#get beta (effect size of mutation)
+betas = combInfo$mybetas
+#plot(as.matrix(pop[-1]), add_selection_to_pop(pop, latitude=eurolat[1], alpha=0.01, betas=betas))
+
+# get genic var
+myGenicVar = colMeans(eurolines[,-1]/2)*(1- colMeans(eurolines[,-1]/2))
+
+
+#need to apply add_selection to table of genotypes (europops) where columns are pops and rows are loci. Will apply one locus at a time.
+selpops = t(sapply(1:nrow(europops), function(x){
+  selpop = add_selection_to_pop(pop = europops[x,], latitude = eurolat[x], alpha=myalpha, beta=betas, genicVar = myGenicVar)
+  return(selpop)
+} ))
+
+
+
+
+#plot(as.matrix(europops[3,][-1]), selpops[3,])
+
+#line = eurolines[1,]
+## sample new individual allele frequencies from these pop frequencies
+#selLines = sapply(1:nrow(eurolines), function(y){ #read through each pop
+selLines = sapply(1:nrow(eurolines), function(y){ #read through each pop
+  line = eurolines[y,]
+  linePop = line[1][1,1]
+  lineGenos = as.numeric(line[-1])
+  myIndex = (1:38)[europops[,1] == linePop]#figure out what row of sel pops to sample from
+  selAlleles = sapply(1:length(lineGenos), function(x){
+    altFreq = selpops[myIndex, x]/2 #frequency of the nonreference allele
+    selAlleleCount = sum(sample_n(data.frame(genos=c(0,1)), size=2, replace=T, weight=c(1-altFreq, altFreq)))
+    return(selAlleleCount)
+  }  )#for each locus, sample from freq
+  return(selAlleles)
+})
+
+save(selLines, file = paste('data/simFiles/powerSimAlleles.',myalpha,'.',myI,sep=""))
+}
+
+sapply(1:200, getSelFreqs)
+```
+
+Run the test on these new simulated sites.
+
+```{r, eval=F}
+
+load('data/euro.282.E.rda')
+load('data/euro.282E.rda')
+euro282=myF
+myM=906
+sigma11 = as.matrix(euro282[1:myM,1:myM])
+sigma12 = as.matrix(euro282[1:myM,(myM+1):ncol(euro282)])
+sigma21 = as.matrix(euro282[(myM+1):ncol(euro282),1:myM])
+sigma22 = as.matrix(euro282[(myM+1):ncol(euro282),(myM+1):ncol(euro282)]) #we are dropping the last row
+sigma.cond = sigma11 - sigma12 %*% solve(sigma22) %*% sigma21 
+condEig = eigen(sigma.cond)
+cEigVectors = condEig$vectors
+cEigValues = condEig$values
+
+varexp = euro282eigen$values/sum(euro282eigen$values)
+sumexp = sapply(1:length(varexp), function(x){sum(varexp[1:x])})
+#get cutoffs for omnibus statistic
+#myRs = c(which(sumexp > .05)[1], which(sumexp > .3)[1])
+pcmax = which(sumexp > 0.3)[1]
+tailCutoff = round(.9*906)
+
+myI=1
+Qxpceuro_power <- function(myI, myM = 906, gwasPrefix = 'data/simFiles/ldfiltered.euro.assoc.', genoPrefix = 'data/simFiles/sigSnps.euro.', simPrefix = 'data/simFiles/powerSimAlleles.0.01.'){ #myM is the number of individuals in the genotyping panel
+#read in data
+gwasHits = read.table(paste(gwasPrefix,myI,sep=""), stringsAsFactors=F)
+names(gwasHits) = c('x','y',strsplit('chr     rs      ps      n_miss  allele1 allele0 af      beta    se      l_remle l_mle   p_wald  p_lrt   p_score', split=' +')[[1]])
+gwasHits$locus =  sapply(gwasHits$rs, function(x){paste('s',gsub(":","_",x),sep="")})
+sigGenosOld = read.table(paste(genoPrefix,myI, sep=""), header=T, stringsAsFactors=F)
+
+load(paste(simPrefix,myI,sep=""))
+sigGenos = cbind(sigGenosOld[,1:5],selLines, sigGenosOld[,(myM+6):ncol(sigGenosOld)])
+
+#combine table of GWAS results with genotypes in the GWAS set
+combInfo = dplyr::left_join(sigGenos, gwasHits, by = c('locus'))
+combInfo$mybetas = ifelse(combInfo$allele1 == combInfo$ALT, combInfo$beta, -combInfo$beta)
+myBetas = as.matrix(combInfo$mybetas)
+
+#center genotype matrix
+myG = t(as.matrix(sigGenos[,6:ncol(sigGenos)]))
+m = nrow(myG)
+myT = matrix(data = -1/m, nrow = m - 1, ncol = m)
+diag(myT) = (m - 1)/m
+myGcent = myT %*% myG
+
+#calculate breeding values
+allZ = myGcent %*% myBetas
+z1 = allZ[1:myM]
+z2 = allZ[(myM+1):length(allZ)]
+#z2cent = z2[-length(z2)] - mean(z2)
+zcond = mean(z1) + sigma12 %*% solve(sigma22) %*%  z2 #calculating the conditional prediction for Z
+#zcond = zcond - mean(zcond)#center zcond
+#z1 = z1 - mean(z1)
+
+#project breeding values onto PCs and standardize
+myVa = calcVa(colMeans(myG)/2, myBetas)
+myBm = t(z1 - zcond) %*% as.matrix(cEigVectors) #z1 - zcond is the observed - expected under conditional
+myCm = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(2*cEigValues[x]*myVa))})
+
+#do omnibus test
+#myOmni = sapply(myRs, function(n){var0(myCm[1:n])})
+#myOmniPs = sapply(1:length(myOmni), function(x){pchisq(myOmni[x], df = myRs[x], lower.tail=F)})
+
+#do PC specific test -- here still using Va from the loci effect sizes and frequency
+#myPcPs = sapply(myCm, function(x){2*pnorm(-abs(myQm), mean=0, sd = 1)}) #normal dist
+myPcPs = sapply(myCm[1:pcmax], function(x){pchisq(var0(x), df=1, lower.tail=F)}) #chisq dist
+
+
+#Qpc version
+myCmprime = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(cEigValues[x]))})
+myQm = sapply(1:pcmax, function(n){
+    var0(myCmprime[n])/var0(myCmprime[(tailCutoff-50):tailCutoff])
+  })
+myPsprime = sapply(1:pcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
+
+outList = list(pc_p = myPcPs, va = myVa, muprime = zcond, bv = z1,cms = myCm, cmprime = myCmprime, pprime = myPsprime)
+
+return(outList)
+#return the data in a reasonable way
+}
+
+#ceuroOut_power = lapply(1:200,Qxpceuro_power)
+#save(ceuroOut_power, file='data/simFiles/ceuroOut_200_power') 
+
+```
+
+Look at the simualtions.
+
+```{r, eval=F, echo=F}
+
+
+load('data/simFiles/ceuroOut_200_power')
+cpvals = sapply(ceuroOut_power, function(x) {x$pc_p}) #matrix, rows are pvals, columns are traits
+cqvals = get_q_values(cpvals)
+
+#mysig = apply(allqvals, 2, function(x){ cut(x, c(0,0.001,0.01,0.05,0.1,1), labels=F)})
+layout(matrix(1, nrow=1, ncol=1))
+mysig2 =  cut((1:1000/1000), c(0,0.001,0.01,0.05,0.1,1)) #for legend
+par(mar=c(8,8,2,2), xpd=TRUE, mfrow=c(1,1))
+mycol = c(viridis(6, direction=1)[1:4], "white")
+image(cqvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1), ylab = "simulated trait")
+#axis(1, at = c(0:5/5), labels = (0:5)*10)
+axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(cqvals)))
+axis(2, las=2, at = seq(0,1,length.out=5), labels=seq(0,200,length.out=5))
+legend(0,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
+
+
+#with inflation factor
+cpvalsprime = sapply(ceuroOut_power, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
+cqvalsprime = get_q_values(cpvalsprime)
+
+
+image(cqvalsprime, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1), ylab = "simulated trait")
+#axis(1, at = c(0:5/5), labels = (0:5)*10)
+axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(cqvals)))
+axis(2, las=2, at = seq(0,1,length.out=5), labels=seq(0,200,length.out=5))
+legend(0,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
+
+```
+
+So, now trying with a other beta values
+
+```{r, eval=F}
+
+sapply(1:200, function(x){getSelFreqs(myI = x, myalpha = 0.05)})
+sapply(1:200, function(x){getSelFreqs(myI = x, myalpha = 0.005)})
+
+ceuroOut_power01 = lapply(1:200,function(x){Qxpceuro_power(x, simPrefix = 'data/simFiles/powerSimAlleles.0.01.')})
+save(ceuroOut_power01, file='data/simFiles/ceuroOut_200_power01') 
+
+ceuroOut_power05 = lapply(1:200,function(x){Qxpceuro_power(x, simPrefix = 'data/simFiles/powerSimAlleles.0.05.')})
+save(ceuroOut_power05, file='data/simFiles/ceuroOut_200_power05') 
+
+ceuroOut_power005 = lapply(1:200,function(x){Qxpceuro_power(x, simPrefix = 'data/simFiles/powerSimAlleles.0.005.')})
+save(ceuroOut_power005, file='data/simFiles/ceuroOut_200_power005') 
+```
+
+```{r}
+
+
+
+load('data/simFiles/ceuroOut_200_power005')
+cpvals005 = sapply(ceuroOut_power005, function(x) {x$pc_p}) #matrix, rows are pvals, columns are traits
+cqvals005 = get_q_values(cpvals005)
+cpvalsprime005 = sapply(ceuroOut_power005, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
+cqvalsprime005 = get_q_values(cpvalsprime005)
+
+
+
+load('data/simFiles/ceuroOut_200_power05')
+cpvals05 = sapply(ceuroOut_power05, function(x) {x$pc_p}) #matrix, rows are pvals, columns are traits
+cqvals05 = get_q_values(cpvals05)
+
+cpvalsprime05 = sapply(ceuroOut_power05, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
+cqvalsprime05 = get_q_values(cpvalsprime05)
+
+
+load('data/simFiles/ceuroOut_200_power01')
+cpvals = sapply(ceuroOut_power01, function(x) {x$pc_p}) #matrix, rows are pvals, columns are traits
+cqvals = get_q_values(cpvals)
+cpvalsprime = sapply(ceuroOut_power01, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
+cqvalsprime = get_q_values(cpvalsprime)
+
+
+#compare all at once
+par(mfrow=c(3,2), mar=c(4,6,5,2))
+mycol = c(viridis(6, direction=1)[1:4], "white")
+
+image(cpvals05, col = mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1), ylab = "simulated trait", main = "alpha = 0.05")
+axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(cpvals)))
+axis(2, las=2, at = seq(0,1,length.out=5), labels=seq(0,dim(cpvals)[2],length.out=5))
+
+image(cpvalsprime05, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1), ylab = "simulated trait", main = "alpha = 0.05, with inflation factor")
+axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(cpvals)))
+axis(2, las=2, at = seq(0,1,length.out=5), labels=seq(0,dim(cpvals)[2],length.out=5))
+
+
+
+image(cpvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1), ylab = "simulated trait", main = "alpha = 0.01")
+axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(cpvals)))
+
+image(cpvalsprime, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1), ylab = "simulated trait", main = "alpha = 0.01, with inflation factor")
+axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(cpvals)))
+axis(2, las=2, at = seq(0,1,length.out=5), labels=seq(0,dim(cpvals)[2],length.out=5))
+
+
+image(cpvals005, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1), ylab = "simulated trait", main = "alpha = 0.005")
+axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(cpvals)))
+axis(2, las=2, at = seq(0,1,length.out=5), labels=seq(0,dim(cpvals)[2],length.out=5))
+
+image(cpvalsprime005, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1), ylab = "simulated trait", main = "alpha = 0.005, with inflation factor")
+axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(cpvals)))
+axis(2, las=2, at = seq(0,1,length.out=5), labels=seq(0,dim(cpvals)[2],length.out=5))
+
+##values for text
+prop05 <- function(pvals){apply(pvals, 1, function(x){sum(x< 0.05)/length(x)})}
+prop05(cpvalsprime05)[1:10]
+prop05(cpvalsprime)[1:10]
+prop05(cpvalsprime005)[1:10]
+
+count05 <- function(pvals){apply(pvals, 1, function(x){sum(x< 0.05)})}
+count05(cpvalsprime05)[1:10]
+count05(cpvalsprime)[1:10]
+count05(cpvalsprime005)[1:10]
+dim(cpvalsprime05)
+```
+
+Are PCs with a stronger correlation to latitude most like to look like they're under selection??
+
+```{r}
+#load in PC and latitude data
+eurodat = read.table('data/eurolandraceinfo.csv', sep=',', head=T, stringsAsFactors=F)
+load('data/euro.282.condeig.rda')
+euronames = read.table('data/merged263Landraces.names', stringsAsFactors=F)[1:906,]
+europops = sapply(euronames, function(x){substr(x, 1, 2)})
+
+mydf = data.frame(Code=europops,cEigVectors, stringsAsFactors = F)
+mydflat = dplyr::left_join(mydf, eurodat, by='Code')
+
+par(mfrow=c(1,1), mar=c(4,4,2,2))
+
+#plot(mydflat$Latitude, mydflat$V1, bty="n", col = "white", xlav = "Latitude", ylab = "PC")
+#test = sapply(1:21, function(x){abline(lm(mydflat[,x+1] ~ mydflat$Latitude), col = viridis(21)[x])})
+
+latcors = sapply(1:21, function(x){cor.test(mydflat$Latitude,mydflat[,x+1])$estimate})
+latps = sapply(1:21, function(x){cor.test(mydflat$Latitude,mydflat[,x+1])$p.value})
+latpcols = ifelse(latps<0.05, viridis(3)[1], viridis(3)[2])
+
+save(latcors, latps, file='data/simFiles/powerSimLatCors.rda')
+
+
+par(mfrow=c(2,1))
+image(cpvalsprime, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1), ylab = "simulated trait", main = "alpha = 0.01, with inflation factor")
+axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(cpvals)))
+axis(2, las=2, at = seq(0,1,length.out=5), labels=seq(0,dim(cpvals)[2],length.out=5))
+
+plot(abs(latcors), bty="n", xlab = "", ylab = "abs(cor btw pc and latitude)", xaxt="n", yaxt = "n", col = latpcols, cex=2, lwd=4)
+axis(1, lab = 1:21, at=1:21)
+axis(2, las=2)
+```
+
+Make a plot of everything nicely 
+
+```{r}
+
+
+par(mfrow=c(1,1))
+library(LaCroixColoR)
+layout(matrix(c(1,1,1,1,1,1,2,2,2), 3, 3, byrow = TRUE))
+par(cex.lab = 2, mar = c(6,6,3,3), cex.axis=1.5)
+mycol = lacroix_palette('Lime')[c(2,4,5)]
+
+plot(-1,-1, ylim = c(0,1.2), xlim = c(1,40), bty="n", xlab = "PC", ylab = "Proportion significant tests", xaxt="n", yaxt = "n")
+test = barplot(rbind(prop05(cpvalsprime005)[1:10],prop05(cpvalsprime)[1:10], prop05(cpvalsprime05)[1:10]), beside=T, col = mycol, border = mycol, add=T, yaxt="n")
+axis(1, at = test[1,]+ 1, lab = 1:10)
+axis(2, at = (0:5)/5,las=2)
+mtext('A', side=3, adj=0, cex=2, line=0)
+legend('topleft', c(expression(paste(alpha, '= 0.005')), expression(paste(alpha, '= 0.01')), expression(paste(alpha, '= 0.05'))),fill = mycol, border=NA,cex=2, bty="n", horiz=T, text.width=8)
+
+latpcols = ifelse(latps<0.05, mycol[1], mycol[3])
+
+plot(abs(latcors)[1:10], bty="n", xlab = "PC", ylab = "abs(Correlation)", xaxt="n", yaxt = "n", col = latpcols, cex=2, lwd=4, ylim = c(0,0.8))
+axis(1, lab = 1:21, at=1:21)
+axis(2, las=2)
+legend(9, 0.8, c('p < 0.05','p > 0.05'), col = mycol[c(1,3)],pt.lwd=2, bty="n", pch=1, cex=1.8)
+mtext('B', side=3, adj=0, cex=2, line=0)
+
+
+```
+
