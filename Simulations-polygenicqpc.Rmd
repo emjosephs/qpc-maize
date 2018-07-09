@@ -17,23 +17,7 @@ library(qvalue)
 #library(IRanges)
 #library(GenomicRanges)
 library('LaCroixColoR')
-setwd('~/Documents/qpc/') #sorry world
-```
-
-
-###Load in data
-```{r}
-
-
-
-
-#load('data/amesOnly.E.K.rda') 
-#load('data/ames.281E.K.rda')
-
-
-#load('data/euro.282.E.rda')
-#load('data/euroOnlyE.rda')
-
+setwd('~/Documents/qpc-maize/') #sorry world
 ```
 
 
@@ -45,17 +29,6 @@ setwd('~/Documents/qpc/') #sorry world
 cutoff=0.1
 doGwas <- function(myI, cutoff=0.1){
   set.seed(myI)
-  
-  #prep the traits
-  #myTraits = read.table(paste('data/simFiles/simTraits.',myI,sep=""))
-  #write.table(myTraits[2705:2985,], file=paste("data/simFiles/simTraits.281.", myI, sep=""), quote=F, row.names=F, col.names=F)
-  
-  #system(paste("~/Apps/GEMMA/bin/gemma -g data/cAll_281.bimbam -p data/simFiles/simTraits.281.",
-  #             myI,
-  #             "  -lmm 4 -miss 0.1 -k data/cAll_281.sXX.txt -o gemmaout.",
-  #             myI,
-  #             sep=""))
-  #system("mv output/* data/simFiles/")
   
   #read in file and pull out 'significant hits'
   gemma.out = processGemmaOutput(paste('data/simFiles/gemmaout.',myI,'.assoc.txt',sep=""))

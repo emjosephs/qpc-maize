@@ -7,23 +7,15 @@ output:
     keep_md: yes
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-library(dplyr)
-library(viridis)
-library(qpctools)
-library(qvalue)
-library(MASS)
-library('LaCroixColoR')
-setwd('~/Documents/qpc-maize/') #sorry world
-```
+
 
 This notebook has code for running simulations for Q<sub>pc</sub> analysis in a GWAS panel of 240 maize lines and Q<sub>xpc</sub> on Ames and European lines.
 
 
 ###Q<sub>pc</sub> simulations:
 
-```{r qpc_sims}
+
+```r
 #read in kinship data
 myK = read.table('data/All_240E.nomaf.nomissing.K')
 myKnames = read.table('data/240.names', stringsAsFactors = F)$V1 #get individual names
@@ -41,7 +33,8 @@ pcmax = which(sumexp > 0.3)[1]
 tailCutoff = round(.9*length(myLambdas))
 ```
 
-```{r qpcsims, eval=F}
+
+```r
 #function for calculating Qm
 calcQm <- function(myZ=MyZneutral, myU=eigF$vectors, myLambdas=eigF$values){
   myZ = myZ[1:dim(myU)[1]] - mean(myZ)
@@ -69,7 +62,8 @@ save(neutQpcVe0,neutQpcVe.1,neutQpcVe.5, tailCutoff, pcmax, file="data/simFiles/
 ```
 
 We can measure false positives using the variance of C values (which we expect to be Va under neutrality, which has been set as 1 here)
-```{r qpc-sims-cont}
+
+```r
 load('data/simFiles/Qpc200.rda')
 mycol = viridis(6)
 
@@ -77,7 +71,11 @@ mycol = viridis(6)
 allCms = sapply(neutQpcVe0, function(x) {x$cm}) #matrix where columns are the Cm values for a given simulation (from PC1 to PC 239)
 allCmVars = apply(allCms, 1, var0) #get variance across all 200 sims for each pc
 plot(allCmVars[1:tailCutoff], bty="n", col = mycol[1], lwd=2, xlab = 'PC', ylab = "var(Cm) with no Ve", xlim = c(0,tailCutoff))
+```
 
+![](Simulations-traitqpc_files/figure-html/qpc-sims-cont-1.png)<!-- -->
+
+```r
 allPs = sapply(neutQpcVe0, function(x) {x$pvals}) #matrix where columns are the Cm values for a given simulation (from PC1 to PC 239)
 
 count_sig = sapply(1:pcmax, function(x){sum(allPs[x,]<=0.05)})
@@ -85,7 +83,8 @@ count_sig = sapply(1:pcmax, function(x){sum(allPs[x,]<=0.05)})
 
 Without any V<sub>e</sub>, the variance of C<sub>m<sub> is centered around 1, as expected under neutrality. What happpens when we add V<sub>e</sub>?
 
-```{r}
+
+```r
 #adding Ve
 allCmsVe.1 = sapply(neutQpcVe.1, function(x) {x$cm})
 allCmVarsVe.1 = apply(allCmsVe.1, 1, var0) #get variance across all 200 sims for each pc
@@ -96,12 +95,14 @@ plot(allCmVarsVe.5[1:tailCutoff], bty="n", col = mycol[1], lwd=2, xlab = 'PC', y
 points(allCmVarsVe.1[1:tailCutoff], col = mycol[3], lwd=2)
 points(allCmVars[1:tailCutoff], col = mycol[5], lwd=2)
 legend('topleft', c('Ve=0','Ve=Va/10','Ve=Va/2'), col = mycol[c(5,3,1)], pch=1, bty="n", pt.lwd=2)
-
 ```
+
+![](Simulations-traitqpc_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
 
 Adding V<sub>e</sub> increases the variance of Cm at increasingly large scales. This will make our test conservative. We can see how conservative but calculating the average P value across tests. 
 
-```{r}
+
+```r
 #testing for selection on early PCs
 allPs = sapply(neutQpcVe0, function(x){x$pvals})
 meanPs = apply(allPs, 1, mean)
@@ -115,4 +116,6 @@ points(-log10(meanPsVe.1), col=mycol[3], lwd=2)
 points(-log10(meanPsVe.5), col=mycol[5], lwd=2)
 legend('topleft', c('Ve=0','Ve=Va/10','Ve=Va/2'), col = mycol[c(1,3,5)], pch=1, bty="n", pt.lwd=2)
 ```
+
+![](Simulations-traitqpc_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
 
