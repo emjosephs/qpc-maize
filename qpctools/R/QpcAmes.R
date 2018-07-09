@@ -52,7 +52,7 @@ myQm = sapply(1:mypcmax, function(n){
 myPsprime = sapply(1:mypcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
 
 outList = list(muprime = zcond, cmprime = myCmprime, pprime = myPsprime)
-#return the data in a reasonable way
+return(outList)
 }
 
 

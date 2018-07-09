@@ -46,12 +46,14 @@ myBm = t(allZ) %*% myU
 
 #do Qpc
 myCmprime = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(myLambdas[x]))})
-myQm = sapply(1:pcmax, function(n){
+myQm = sapply(1:mypcmax, function(n){
     var0(myCmprime[n])/var0(myCmprime[(tailCutoff-50):tailCutoff])
   })
-myPsprime = sapply(1:pcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
+myPsprime = sapply(1:mypcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
 
 outList = list(cmprime = myCmprime, pprime = myPsprime, n.sites = nrow(combInfo))
+return(outList)
+
 }
 
 

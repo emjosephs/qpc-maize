@@ -26,7 +26,7 @@ sigma12 = as.matrix(myF[1:myM,(myM+1):dim(mysigma)[1]])
 
 #read in data
 gwasHits = read.table(paste(gwasPrefix,myI,sep=""), stringsAsFactors=F)
-names(gwasHits) = c('x','y',strsplit('chr     rs      ps      n_miss  allele1 allele0 af      beta    se      l_remle l_mle   p_wald  p_lrt   p_score scaf', split=' +')[[1]])
+names(gwasHits) = c('x','y',strsplit('chr     rs      ps      n_miss  allele1 allele0 af      beta    se      l_remle l_mle   p_wald  p_lrt   p_score scaf', split=' +')[[1]])[1:ncol(gwasHits)]
 gwasHits$locus =  sapply(gwasHits$rs, function(x){paste('s',gsub(":","_",x),sep="")})
 sigGenos = read.table(paste(sigPrefix,myI, sep=""), header=T, stringsAsFactors=F)
 
@@ -60,7 +60,7 @@ myBm = t(z1 - zcond) %*% as.matrix(myU) #z1 - zcond is the observed - expected u
 
 #do PC specific test -- here still using Va from the loci effect sizes and frequency
 myCmprime = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(myLambda[x]))})
-myQm = sapply(1:pcmax, function(n){
+myQm = sapply(1:mypcmax, function(n){
     var0(myCmprime[n])/var0(myCmprime[(tailCutoff-50):tailCutoff])
   })
 myPsprime = sapply(1:mypcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})

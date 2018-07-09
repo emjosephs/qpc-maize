@@ -7,23 +7,13 @@ output:
     keep_md: yes
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-library(dplyr)
-library(viridis)
-library(qpctools)
-library(qvalue)
 
-#library(IRanges)
-#library(GenomicRanges)
-library('LaCroixColoR')
-setwd('~/Documents/qpc-maize/') #sorry world
-```
 
 
 ## Doing GWAS
 ### Ames
-```{r gwassims, eval=F}
+
+```r
 #as before, only run this once
 #the bimbam file is too big to share on github, but I will share the GWAS results
 cutoff=0.1
@@ -64,7 +54,8 @@ mytest = sapply(1:200, doGwas)
 
 
 Then pull out the hits from the larger dataset
-```{r sigsnps, eval=F}
+
+```r
 getSigSnps <- function(myI, sitePrefix = 'data/simFiles/ldfiltered.'){
   gwasSites = read.table(paste(sitePrefix,myI,sep=""), stringsAsFactors=F)
   system(paste('head -n 1 data/ames.281.june14.geno95.maf01.randomimpute > data/simFiles/sigSnps.ames.',myI,sep=""))
@@ -80,7 +71,8 @@ sapply(1:200, getSigSnps)
 ### European lines
 And on the European sims
 
-```{r euroGwas, eval=F}
+
+```r
 cutoff=0.1
 doGwas <- function(myI){
   set.seed(myI)
@@ -148,15 +140,14 @@ sapply(1:200, getSigSnpsEuro)
 sapply(201:1000, getSigSnpsEuro)
 
 #system("rsync -avz -e 'ssh -p 2022' farm:/home/emjo/euro-maize/data/simFiles/sigSnps* simFiles/")
-
-
 ```
 
 
 ## Non-conditional test 
 ### Ames
 
-```{r qxpc_noncond_ames, eval=F}
+
+```r
 #do the nonconditional test using the same function used in real data (in Qpc-ames.md)
 load('data/amesOnly.eig.rda')
 
@@ -165,13 +156,12 @@ ncamesOut = lapply(1:200, function(x){
     myU = amesEig$vectors, myLambda = amesEig$values
   )})
 save(ncamesOut, file='data/simFiles/qxpc_nonconditional_ames_200')  
-  
-
 ```
 
 ### European lines
 
-```{r do_euro_nc_sims, eval=F}
+
+```r
 #do noncoditional test using the same function used for the test on real data (in Qpc-euro.md)
 
 load('data/euroOnlyK.rda')
@@ -187,7 +177,8 @@ save(nceuroOut, file='data/simFiles/qxpc_nonconditional_euro_200')
 ## Conditional test
 ### Ames
 
-```{r gwascond, eval=F}
+
+```r
 ## load data
 load("data/ames.281E.K.rda")
 load('data/ames.281E.condeig.rda')
@@ -202,11 +193,11 @@ sigma.cond = sigma11 - sigma12 %*% solve(sigma22) %*% sigma21
 camesOut = lapply(1:200,function(x) {Qpcames(myI = x, gwasPrefix = 'data/simFiles/ldfiltered.assoc.', sigPrefix = 'data/simFiles/sigSnps.ames.', mypcmax = 100,
         myLambda = condEig$values, myU = condEig$vectors)})
 save(camesOut, file='data/simFiles/qpc_ames_200')
-
 ```
 
 
-```{r euro-conditional, eval=F}
+
+```r
 ###load data
 load('data/euro.282.E.rda')
 
@@ -231,8 +222,8 @@ save(ceuroOut, file='data/simFiles/qpc_euro_200')
 
 ## Look at the results
 
-```{r gwasnocond}
 
+```r
 load('data/simFiles/qxpc_nonconditional_ames_200') #ncamesOut
 load('data/simFiles/qxpc_nonconditional_euro_200') #nceuroOut
 load('data/simFiles/qpc_euro_200') #ceuroOut
@@ -253,14 +244,21 @@ legend(0,-0.15, levels(mysig2), fill=mycol, bty="n", ncol=3)
 axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(nap)))
 image(cap, col=mycol, xaxt="n", yaxt="n", bty="l", breaks=c(0,0.001,0.01,0.05,0.1,1), ylab = "simulated trait", xlab = "PC", main="Conditional")
 axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(cap)))
+```
 
+![](Simulations-polygenicqpc_files/figure-html/gwasnocond-1.png)<!-- -->
+
+```r
 image(nep, col=mycol, xaxt="n", yaxt="n", bty="l", breaks=c(0,0.001,0.01,0.05,0.1,1), ylab = "simulated trait", xlab="PC", main="Non-conditional")
 legend(0,-0.15, levels(mysig2), fill=mycol, bty="n", ncol=3)
 axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*99+1))
 image(cep[,1:200], col=mycol, xaxt="n", yaxt="n", bty="l", breaks=c(0,0.001,0.01,0.05,0.1,1), ylab = "simulated trait", xlab = "PC", main="Conditional")
 axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*99+1))
+```
 
+![](Simulations-polygenicqpc_files/figure-html/gwasnocond-2.png)<!-- -->
 
+```r
 ### bar plots of the proportion of sims that have p < 0.05
 par(xpd=F, mfrow = c(2,1), mar=c(5,5,2,2))
 mycol = lacroix_palette('Lime')
@@ -280,8 +278,7 @@ abline(h=0.05, col = mycol[6], lwd=2)
 test = barplot(rbind(prop05(nep)[1:10], prop05(cep)[1:10]), beside=T, border=NA, col = mycol[c(4,6)], ylim=c(0,1), add=T)
 axis(1, at = test[1,]+ 0.5, lab = 1:10, cex=1.5)
 legend('topleft', c('Europe Non-conditional test', 'Europe Conditional test'), fill = mycol[c(4,6)], border="white", bty="n")
-
-
-
 ```
+
+![](Simulations-polygenicqpc_files/figure-html/gwasnocond-3.png)<!-- -->
 
