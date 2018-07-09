@@ -13,7 +13,7 @@ library(dplyr)
 library(viridis)
 library(qpctools)
 library(qvalue)
-setwd('~/Documents/qpc/') #sorry world
+setwd('~/Documents/qpc-maize/') #sorry world
 ```
 
 This notebook has code for running a form of Q<sub>pc</sub> analysis using the Major-Goodman GWAS panel and detecting selection in the European landraces.
@@ -21,8 +21,6 @@ This notebook has code for running a form of Q<sub>pc</sub> analysis using the M
 # Load in the kinship matrix and make a conditional matrix 
 ```{r kmatrix}
 load('data/euro.282.E.rda')
-
-
 sigma11 = as.matrix(myF[1:906,1:906])
 sigma12 = as.matrix(myF[1:906,907:1168])
 sigma21 = as.matrix(myF[907:1168,1:906])

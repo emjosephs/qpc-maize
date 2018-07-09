@@ -1,5 +1,5 @@
 ---
-title: "Qxpc-ames.Rmd"
+title: "Qpc-ames.Rmd"
 author: "em"
 date: "February 13, 2017"
 output:
@@ -13,7 +13,7 @@ library(dplyr)
 library(viridis)
 library(qpctools)
 library(qvalue)
-setwd('~/Documents/qpc/') #sorry world
+setwd('~/Documents/qpc-maize/') #sorry world
 
 ```
 
@@ -88,6 +88,8 @@ save(qpcamesOut, file='data/qpc-ames-output.rda')
 
 # Look at results
 ```{r heatmap-figure}
+load('data/qpc-ames-output.rda')
+
 niceTraitnames = sapply(traitNames, function(x){
   strsplit(x, '0607')[[1]][1]
 })

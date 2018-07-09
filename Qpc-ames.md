@@ -1,5 +1,5 @@
 ---
-title: "Qxpc-ames.Rmd"
+title: "Qpc-ames.Rmd"
 author: "em"
 date: "February 13, 2017"
 output:
@@ -143,6 +143,8 @@ save(qpcamesOut, file='data/qpc-ames-output.rda')
 # Look at results
 
 ```r
+load('data/qpc-ames-output.rda')
+
 niceTraitnames = sapply(traitNames, function(x){
   strsplit(x, '0607')[[1]][1]
 })

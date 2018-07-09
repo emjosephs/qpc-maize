@@ -15,8 +15,6 @@ This notebook has code for running a form of Q<sub>pc</sub> analysis using the M
 
 ```r
 load('data/euro.282.E.rda')
-
-
 sigma11 = as.matrix(myF[1:906,1:906])
 sigma12 = as.matrix(myF[1:906,907:1168])
 sigma21 = as.matrix(myF[907:1168,1:906])
