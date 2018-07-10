@@ -1,0 +1,303 @@
+Inbred,State/Country,NSS,SS,TS,Pop A,Sweet A,Subpopulation
+Yu796,Yugoslavia,0.785,0.189,0.026,0,0,mixed
+4226,Illinois,0.917,0.071,0.012,0,0,nss
+4722,Indiana,0,0,0,1,0,popcorn
+33-16,Indiana,0.972,0.014,0.014,0,0,nss
+38-11Goodman-Buckler,Indiana,0.993,0.003,0.004,0,0,nss
+81-1,USDA,0,0,0,0,1,sweet
+A188,Minnesota,0.982,0.013,0.006,0,0,nss
+A214NGoodman-Buckler,South Africa,0.017,0.762,0.221,0,0,mixed
+A239,Minnesota,0.963,0.035,0.002,0,0,nss
+A272,South Africa,0.122,0.019,0.859,0,0,ts
+A441-5,South Africa,0.531,0.005,0.464,0,0,mixed
+A554,Minnesota,0.979,0.019,0.002,0,0,nss
+A556,Minnesota,0.994,0.004,0.002,0,0,nss
+A6,Pioneer,0.03,0.003,0.967,0,0,ts
+A619,Minnesota,0.99,0.009,0.001,0,0,nss
+A632,Minnesota,0.004,0.993,0.004,0,0,ss
+A634,Minnesota,0.1,0.897,0.004,0,0,ss
+A635,Minnesota,0.171,0.825,0.004,0,0,ss
+A641,Minnesota,0.481,0.517,0.002,0,0,mixed
+A654,Minnesota,0.915,0.083,0.002,0,0,nss
+A659,Minnesota,0.991,0.006,0.002,0,0,nss
+A661,Minnesota,0.852,0.111,0.037,0,0,nss
+A679,Minnesota,0.127,0.862,0.011,0,0,ss
+A680,Minnesota,0.004,0.993,0.002,0,0,ss
+A682,Minnesota,0.997,0.002,0.001,0,0,nss
+Ab28A,Alabama,0.776,0.002,0.222,0,0,mixed
+B10,Iowa,0.57,0.429,0.002,0,0,mixed
+B103,Iowa,0.829,0.163,0.009,0,0,nss
+B104,Iowa,0.305,0.694,0.002,0,0,mixed
+B105,Iowa,0.566,0.397,0.037,0,0,mixed
+B109,Iowa,0.003,0.995,0.002,0,0,ss
+B115,Iowa,0.847,0.061,0.092,0,0,nss
+B14A,Iowa,0.001,0.998,0.001,0,0,ss
+B164,Minnesota,0.756,0.233,0.011,0,0,mixed
+B2,Missouri,0.988,0.007,0.005,0,0,nss
+B37,Iowa,0.002,0.997,0.001,0,0,ss
+B46,Iowa,0.784,0.214,0.002,0,0,mixed
+B52,Iowa,0.985,0.012,0.003,0,0,nss
+B57,Iowa,0.996,0.002,0.002,0,0,nss
+B64,Iowa,0.002,0.988,0.01,0,0,ss
+B68,Iowa,0.001,0.998,0.001,0,0,ss
+B73,Iowa,0.001,0.999,0.001,0,0,ss
+B73Htrhm,Iowa,0.001,0.999,0.001,0,0,ss
+B75,Iowa,0.993,0.005,0.002,0,0,nss
+B76,Iowa,0.087,0.912,0.001,0,0,ss
+B77,Iowa,0.915,0.083,0.002,0,0,nss
+B79,Iowa,0.693,0.305,0.002,0,0,mixed
+B84,Iowa,0.003,0.996,0.001,0,0,ss
+B97,Iowa,0.981,0.016,0.003,0,0,nss
+C103,Connecticut,0.997,0.002,0.001,0,0,nss
+C123,Connecticut,0.952,0.047,0.002,0,0,nss
+C49,Minnesota,0.841,0.143,0.016,0,0,nss
+C49A,Minnesota,0.869,0.127,0.004,0,0,nss
+CH701-30,Canada - Harrow,0.993,0.004,0.003,0,0,nss
+CH9,Canada - Harrow,0.992,0.003,0.006,0,0,nss
+Ci7Goodman-Buckler,USDA,0.994,0.004,0.001,0,0,nss
+CI187-2,USDA,0.992,0.006,0.002,0,0,nss
+CI21E,USDA,0.866,0.119,0.014,0,0,nss
+CI28AGoodman-Buckler,USDA,0.749,0.004,0.247,0,0,mixed
+CI31A,USDA,0.994,0.002,0.004,0,0,nss
+CI3A,USDA,0.905,0.083,0.012,0,0,nss
+CI44,USDA,0.988,0.011,0.002,0,0,nss
+CI64,USDA,0.986,0.012,0.002,0,0,nss
+CI66,USDA,0.935,0.011,0.054,0,0,nss
+CI90C,USDA,0.737,0.003,0.26,0,0,mixed
+Ci91BGoodman-Buckler,USDA,0.997,0.002,0.002,0,0,nss
+CM105,Canada-Morden,0.004,0.995,0.001,0,0,ss
+CM174,Canada-Morden,0.002,0.997,0.001,0,0,ss
+CM37,Canada-Morden,0.969,0.013,0.017,0,0,nss
+CM7,Canada-Morden,0.939,0.059,0.002,0,0,nss
+CML10,Mexico,0.002,0.002,0.995,0,0,ts
+CML103,Mexico,0.005,0.003,0.992,0,0,ts
+CML108,Mexico,0.099,0.002,0.899,0,0,ts
+CML11,Mexico,0.002,0.003,0.995,0,0,ts
+CML14,Mexico,0.001,0.001,0.998,0,0,ts
+CML154Q,Mexico,0.005,0.002,0.993,0,0,ts
+CML157Q,Mexico,0.018,0.004,0.978,0,0,ts
+CML158Q,Mexico,0.018,0.01,0.971,0,0,ts
+CML218,Mexico,0.301,0.01,0.689,0,0,mixed
+CML220,Mexico,0.053,0.059,0.887,0,0,ts
+CML228,Mexico,0.002,0.003,0.995,0,0,ts
+CML238,Mexico,0.004,0.001,0.995,0,0,ts
+CML247,Mexico,0.006,0.003,0.991,0,0,ts
+CML254,Mexico,0.006,0.001,0.993,0,0,ts
+CML258,Mexico,0.002,0.001,0.996,0,0,ts
+CML261,Mexico,0.004,0.016,0.981,0,0,ts
+CML264,Mexico,0.001,0.002,0.997,0,0,ts
+CML277,Mexico,0.004,0.001,0.995,0,0,ts
+CML281,Mexico,0.046,0.023,0.931,0,0,ts
+CML287,Mexico,0.022,0.004,0.974,0,0,ts
+CML311,Mexico,0.114,0.004,0.882,0,0,ts
+CML314,Mexico,0.002,0.003,0.995,0,0,ts
+CML321,Mexico,0.008,0.027,0.966,0,0,ts
+CML322,Mexico,0.005,0.01,0.985,0,0,ts
+CML323,Mexico,0.34,0.007,0.653,0,0,mixed
+CML328,Mexico,0.357,0.002,0.641,0,0,mixed
+CML331,Mexico,0.003,0.002,0.994,0,0,ts
+CML332,Mexico,0.003,0.002,0.994,0,0,ts
+CML333,Mexico,0.029,0.013,0.959,0,0,ts
+CML341,Mexico,0.004,0.002,0.995,0,0,ts
+CML349,Mexico,0.165,0.006,0.83,0,0,ts
+CML38,Mexico,0.002,0.001,0.997,0,0,ts
+CML45,Mexico,0.002,0.001,0.997,0,0,ts
+CML5,Mexico,0.034,0.001,0.965,0,0,ts
+CML52,Mexico,0.01,0.002,0.988,0,0,ts
+CML61,Mexico,0.004,0.002,0.994,0,0,ts
+CML69,Mexico,0.028,0.006,0.966,0,0,ts
+CML77,Mexico,0.302,0.005,0.693,0,0,mixed
+CML9,Mexico,0.001,0.014,0.985,0,0,ts
+CML91,Mexico,0.218,0.015,0.767,0,0,mixed
+CML92,Mexico,0.275,0.096,0.629,0,0,mixed
+CMV3,Minnesota,0.847,0.147,0.006,0,0,nss
+CO106,Canada-Ottawa,0.973,0.016,0.011,0,0,nss
+CO109,Canada-Ottawa,0.928,0.013,0.059,0,0,nss
+CO125,Canada-Ontario,0.967,0.021,0.012,0,0,nss
+CO255,Canada-Ottawa,0.647,0.009,0.344,0,0,mixed
+D940Y,South Africa,0.614,0.004,0.382,0,0,mixed
+DE-2,Delaware B,0.979,0.02,0.001,0,0,nss
+DEexpt,Delaware B,0.734,0.24,0.026,0,0,mixed
+DE1,Delaware B,0.98,0.018,0.002,0,0,nss
+DE811,Delaware,0.218,0.779,0.003,0,0,mixed
+E2558W,South Africa,0.923,0.006,0.07,0,0,nss
+EP1,Spain,0.461,0.001,0.537,0,0,mixed
+F2,France-Peronne,0.534,0.002,0.464,0,0,mixed
+F2834T,South Africa,0.421,0.026,0.553,0,0,mixed
+F44,Florida,0.62,0.01,0.369,0,0,mixed
+F6,Florida,0.745,0.005,0.25,0,0,mixed
+F7,France-Peronne,0.608,0.07,0.322,0,0,mixed
+GA209,Georgia,0.979,0.004,0.017,0,0,nss
+GT112,Georgia,0.839,0.008,0.153,0,0,nss
+H100,Indiana,0.029,0.969,0.003,0,0,ss
+H105W,Indiana,0.209,0.753,0.038,0,0,mixed
+H49,Indiana,0.995,0.002,0.003,0,0,nss
+H84,Indiana,0.281,0.714,0.004,0,0,mixed
+H91,Indiana,0.002,0.997,0.001,0,0,ss
+H95,Indiana,0.898,0.001,0.101,0,0,nss
+H99,Indiana,0.997,0.001,0.002,0,0,nss
+Hi27Goodman-Buckler,Hawaii,0.019,0.207,0.774,0,0,mixed
+HP301,Indiana,0,0,0,1,0,popcorn
+ILLHy,Illinois,0.898,0.079,0.024,0,0,nss
+I137TN,South Africa,0.539,0.002,0.459,0,0,mixed
+I205,Iowa,0.767,0.23,0.003,0,0,mixed
+I29,Iowa,0,0,0,1,0,popcorn
+IA2132Goodman-Buckler,Iowa,0,0,0,0,1,sweet
+Ia5125,Iowa,0,0,0,0,1,sweet
+IDS28,Iowa,0,0,0,1,0,popcorn
+IDS69,Iowa,0,0,0,1,0,popcorn
+IDS91,Iowa,0,0,0,1,0,popcorn
+Il101,Illinois,0,0,0,0,1,sweet
+Il14H,Illinois,0,0,0,0,1,sweet
+Il677a,Illinois,0,0,0,0,1,sweet
+K148,Kansas,0.886,0.087,0.027,0,0,nss
+K4,Kansas,0.873,0.11,0.017,0,0,nss
+K55,Kansas,0.98,0.01,0.01,0,0,nss
+K64,Kansas,0.965,0.033,0.002,0,0,nss
+Ki11,Thailand,0.017,0.003,0.98,0,0,ts
+Ki14,Thailand,0.003,0.003,0.994,0,0,ts
+Ki2007,Thailand,0.002,0.005,0.994,0,0,ts
+Ki2021,Thailand,0.005,0.004,0.991,0,0,ts
+Ki21,Thailand,0.393,0.001,0.606,0,0,mixed
+KI3,Thailand,0.002,0.001,0.997,0,0,ts
+Ki43,Thailand,0.048,0.029,0.923,0,0,ts
+Ki44,Thailand,0.018,0.001,0.981,0,0,ts
+Ky21,Kentucky,0.859,0.008,0.133,0,0,nss
+KY226,Kentucky,0.732,0.011,0.258,0,0,mixed
+KY228,Kentucky,0.709,0.134,0.157,0,0,mixed
+L317,Iowa,0.99,0.001,0.009,0,0,nss
+L578,Louisiana,0.297,0.007,0.696,0,0,mixed
+M14,Illinois C,0.849,0.012,0.139,0,0,nss
+M162W,South Africa,0.996,0.002,0.002,0,0,nss
+M37W,South Africa,0.404,0.012,0.584,0,0,mixed
+MEF156-55-2,Maine?,0.854,0.007,0.139,0,0,nss
+Mo17,Missouri,0.998,0.001,0.001,0,0,nss
+Mo18W,Missouri,0.307,0.011,0.683,0,0,mixed
+MO1W,Missouri,0.828,0.004,0.168,0,0,nss
+Mo24W,Missouri,0.727,0.108,0.165,0,0,mixed
+Mo44,Missouri,0.996,0.002,0.002,0,0,nss
+Mo45,Missouri,0.516,0.252,0.232,0,0,mixed
+Mo46,Missouri,0.838,0.152,0.011,0,0,nss
+Mo47,Missouri,0.624,0.18,0.196,0,0,mixed
+MoG,Missouri,0.996,0.002,0.002,0,0,nss
+Mp339,Mississippi,0.641,0.102,0.258,0,0,mixed
+MS1334,Michigan,0.884,0.002,0.114,0,0,nss
+MS153,Michigan,0.865,0.063,0.073,0,0,nss
+Ms71,Michigan,0.997,0.002,0.001,0,0,nss
+Mt42,Minnesota,0.765,0.004,0.231,0,0,mixed
+N192,Nebraska,0.001,0.998,0.001,0,0,ss
+N28Ht,Nebraska,0.447,0.551,0.002,0,0,mixed
+N6,Nebraska,0.98,0.017,0.003,0,0,nss
+N7A,Nebraska,0.503,0.494,0.002,0,0,mixed
+NC222,North Carolina,0.874,0.004,0.122,0,0,nss
+NC230,North Carolina,0.994,0.004,0.002,0,0,nss
+NC232,North Carolina,0.839,0.068,0.094,0,0,nss
+NC236,North Carolina,0.974,0.023,0.002,0,0,nss
+NC238,North Carolina,0.989,0.004,0.007,0,0,nss
+NC250,North Carolina,0.057,0.941,0.002,0,0,ss
+NC258,North Carolina,0.997,0.001,0.001,0,0,nss
+NC260,North Carolina,0.992,0.005,0.003,0,0,nss
+NC262,North Carolina,0.991,0.007,0.001,0,0,nss
+NC264,North Carolina,0.018,0.015,0.967,0,0,ts
+NC268,North Carolina,0.001,0.998,0.001,0,0,ss
+NC290A,North Carolina,0.984,0.015,0.001,0,0,nss
+NC292,North Carolina,0.001,0.999,0.001,0,0,ss
+NC294,North Carolina,0.001,0.998,0.001,0,0,ss
+NC296,North Carolina,0.001,0.002,0.997,0,0,ts
+NC296A,North Carolina,0.001,0.002,0.997,0,0,ts
+NC298,North Carolina,0.001,0.001,0.998,0,0,ts
+NC300,North Carolina,0.003,0.002,0.995,0,0,ts
+NC302,North Carolina,0.003,0.002,0.996,0,0,ts
+NC304,North Carolina,0.002,0.001,0.997,0,0,ts
+NC306,North Carolina,0.001,0.998,0.001,0,0,ss
+NC308,North Carolina,0.001,0.998,0.001,0,0,ss
+NC310,North Carolina,0.001,0.999,0.001,0,0,ss
+NC312,North Carolina,0.001,0.998,0.001,0,0,ss
+NC314,North Carolina,0.001,0.998,0.001,0,0,ss
+NC316,North Carolina,ND,ND,ND,ND,ND,ND
+NC318,North Carolina,0.032,0.002,0.966,0,0,ts
+NC320,North Carolina,0.005,0.004,0.991,0,0,ts
+NC322,North Carolina,0.001,0.996,0.003,0,0,ss
+NC324,North Carolina,0.001,0.999,0.001,0,0,ss
+NC326,North Carolina,0.001,0.998,0.001,0,0,ss
+NC328,North Carolina,0.001,0.998,0.001,0,0,ss
+NC33,North Carolina,0.862,0.129,0.01,0,0,nss
+NC330,North Carolina,0.001,0.999,0.001,0,0,ss
+NC332,North Carolina,0.017,0.013,0.97,0,0,ts
+NC334,North Carolina,0.022,0.002,0.976,0,0,ts
+NC336,North Carolina,0.001,0.002,0.997,0,0,ts
+NC338,North Carolina,0.003,0.002,0.995,0,0,ts
+NC340,North Carolina,0.004,0.009,0.987,0,0,ts
+NC342,North Carolina,0.994,0.005,0.001,0,0,nss
+NC344,North Carolina,0.997,0.002,0.001,0,0,nss
+NC346,North Carolina,0.001,0.002,0.997,0,0,ts
+NC348,North Carolina,0.001,0.001,0.997,0,0,ts
+NC350,North Carolina,0.002,0.003,0.995,0,0,ts
+NC352,North Carolina,0.001,0.003,0.996,0,0,ts
+NC354,North Carolina,0.001,0.01,0.989,0,0,ts
+NC356,North Carolina,0.031,0.001,0.968,0,0,ts
+NC358,North Carolina,0.143,0.001,0.856,0,0,ts
+NC360,North Carolina,0.475,0.001,0.523,0,0,mixed
+NC362,North Carolina,0.54,0.002,0.458,0,0,mixed
+NC364,North Carolina,0.507,0.002,0.492,0,0,mixed
+NC366,North Carolina,0.467,0.018,0.514,0,0,mixed
+NC368,North Carolina,0.003,0.996,0.001,0,0,ss
+NC370,North Carolina,0.003,0.003,0.994,0,0,ts
+NC372,North Carolina,0.001,0.998,0.001,0,0,ss
+ND246,North Dakota,0.76,0.004,0.236,0,0,mixed
+Oh40B,Ohio,0.996,0.002,0.002,0,0,nss
+Oh43,Ohio,0.998,0.001,0.001,0,0,nss
+Oh43E,Ohio,0.997,0.002,0.001,0,0,nss
+Oh603,Ohio,0.669,0.002,0.329,0,0,mixed
+OH7B,Ohio,0.967,0.031,0.002,0,0,nss
+Os420,Iowa,0.983,0.016,0.001,0,0,nss
+P39Goodman-Buckler,Indiana,0,0,0,0,1,sweet
+Pa762,Pennsylvania,0.998,0.001,0.001,0,0,nss
+Pa875,Pennsylvania,0.979,0.002,0.02,0,0,nss
+Pa880,Pennsylvania,0.993,0.002,0.005,0,0,nss
+Pa91,Pennsylvania,0.997,0.001,0.002,0,0,nss
+Q6199,Australia,0.007,0.003,0.99,0,0,ts
+R109B,Illinois,0.855,0.113,0.032,0,0,nss
+R168,Illinois,0.996,0.002,0.002,0,0,nss
+R177,Illinois,0.875,0.122,0.002,0,0,nss
+R229,Illinois,0.002,0.991,0.007,0,0,ss
+R4,Illinois,0.979,0.019,0.003,0,0,nss
+SA24,Indiana,0,0,0,1,0,popcorn
+SC213R,South Carolina,0.579,0.002,0.419,0,0,mixed
+SC357,South Carolina,0.622,0.003,0.375,0,0,mixed
+SC55,South Carolina,0.626,0.046,0.328,0,0,mixed
+SD40,South Dakota,0.581,0.417,0.002,0,0,mixed
+SD44,South Dakota,0.993,0.006,0.001,0,0,nss
+Sg1533,Indiana,0,0,0,1,0,popcorn
+Sg18,Indiana,0,0,0,1,0,popcorn
+T232,Tennessee,0.459,0.14,0.402,0,0,mixed
+T234,Tennessee,0.985,0.003,0.012,0,0,nss
+T8,Tennessee,0.989,0.003,0.007,0,0,nss
+Tx303,Texas,0.36,0.065,0.575,0,0,mixed
+Tx601,Texas,0.004,0.003,0.993,0,0,ts
+Tzi10,Nigeria,0.005,0.003,0.992,0,0,ts
+Tzi11,Nigeria,0.184,0.002,0.814,0,0,ts
+Tzi16,Nigeria,0.351,0.248,0.401,0,0,mixed
+Tzi18,Nigeria,0.003,0.002,0.995,0,0,ts
+Tzi25,Nigeria,0.086,0.305,0.608,0,0,mixed
+Tzi8,Nigeria,0.005,0.041,0.955,0,0,ts
+Tzi9,Nigeria,0.011,0.008,0.982,0,0,ts
+U267Y,South Africa,0.595,0.002,0.403,0,0,mixed
+VA102,Virginia,0.994,0.001,0.005,0,0,nss
+Va14,Virginia,0.995,0.002,0.003,0,0,nss
+Va17,Virginia,0.997,0.002,0.001,0,0,nss
+Va22,Virginia,0.995,0.001,0.003,0,0,nss
+Va26,Virginia,0.983,0.005,0.011,0,0,nss
+Va35,Virginia,0.996,0.002,0.002,0,0,nss
+Va59,Virginia,0.994,0.003,0.003,0,0,nss
+Va85,Virginia,0.983,0.014,0.003,0,0,nss
+Va99,Virginia,0.84,0.158,0.002,0,0,nss
+VaW6,Virginia,0.724,0.02,0.256,0,0,mixed
+W117Ht,Wisconsin,0.617,0.159,0.224,0,0,mixed
+W153R,Wisconsin,0.853,0.145,0.002,0,0,nss
+W182B,Wisconsin,0.845,0.153,0.002,0,0,nss
+W22,Wisconsin,0.931,0.063,0.006,0,0,nss
+W401,Wisconsin,0.993,0.005,0.001,0,0,nss
+W64A,Wisconsin,0.998,0.001,0.001,0,0,nss
+WD,Wisconsin,0.97,0.014,0.016,0,0,nss
+Wf9,Indiana,0.994,0.005,0.001,0,0,nss

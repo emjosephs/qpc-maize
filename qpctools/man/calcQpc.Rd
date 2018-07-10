@@ -7,7 +7,7 @@
 calcQpc(myZ, myU, myLambdas, myPCcutoff = 0.3)
 }
 \arguments{
-\item{myZ}{vector of traits}
+\item{myZ}{vector of traits. Not normalized yet.}
 
 \item{myU}{matrix of eigenvectors of the kinship matrix (each column is an eigenvector)}
 

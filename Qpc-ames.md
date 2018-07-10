@@ -1,7 +1,7 @@
 ---
 title: "Qpc-ames.Rmd"
 author: "em"
-date: "February 13, 2017"
+date: "July 9, 2018"
 output:
   html_document:
     keep_md: yes
@@ -129,7 +129,7 @@ cat qpctools/R/QpcAmes.R
 ## myPsprime = sapply(1:mypcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
 ## 
 ## outList = list(muprime = zcond, cmprime = myCmprime, pprime = myPsprime)
-## #return the data in a reasonable way
+## return(outList)
 ## }
 ```
 
@@ -233,6 +233,7 @@ cat qpctools/R/QpcAmes-nocond.R
 ## myPsprime = sapply(1:mypcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
 ## 
 ## outList = list(muprime = allZ, cmprime = myCmprime, pprime = myPsprime)
+## return(outList)
 ## }
 ```
 
