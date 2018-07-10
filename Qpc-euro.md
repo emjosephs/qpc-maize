@@ -23,7 +23,7 @@ sigma.cond = sigma11 - sigma12 %*% solve(sigma22) %*% sigma21
 condEig = eigen(sigma.cond)
 cEigVectors = condEig$vectors
 cEigValues = condEig$values
-#save(cEigVectors, cEigValues, file = 'data/euro.282.condeig.rda')
+save(cEigVectors, cEigValues, file = 'data/euro.282.condeig.rda')
 
 traitNames = read.table('data/blup.names', stringsAsFactors=F)$V1
 
@@ -80,7 +80,7 @@ cat qpctools/R/QpcEuro.R
 ## 
 ## #read in data
 ## gwasHits = read.table(paste(gwasPrefix,myI,sep=""), stringsAsFactors=F)
-## names(gwasHits) = c('x','y',strsplit('chr     rs      ps      n_miss  allele1 allele0 af      beta    se      l_remle l_mle   p_wald  p_lrt   p_score scaf', split=' +')[[1]])
+## names(gwasHits) = c('x','y',strsplit('chr     rs      ps      n_miss  allele1 allele0 af      beta    se      l_remle l_mle   p_wald  p_lrt   p_score scaf', split=' +')[[1]])[1:ncol(gwasHits)]
 ## gwasHits$locus =  sapply(gwasHits$rs, function(x){paste('s',gsub(":","_",x),sep="")})
 ## sigGenos = read.table(paste(sigPrefix,myI, sep=""), header=T, stringsAsFactors=F)
 ## 
@@ -114,7 +114,7 @@ cat qpctools/R/QpcEuro.R
 ## 
 ## #do PC specific test -- here still using Va from the loci effect sizes and frequency
 ## myCmprime = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(myLambda[x]))})
-## myQm = sapply(1:pcmax, function(n){
+## myQm = sapply(1:mypcmax, function(n){
 ##     var0(myCmprime[n])/var0(myCmprime[(tailCutoff-50):tailCutoff])
 ##   })
 ## myPsprime = sapply(1:mypcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
@@ -218,12 +218,14 @@ cat qpctools/R/QpcEuro-nocond.R
 ## 
 ## #do Qpc
 ## myCmprime = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(myLambdas[x]))})
-## myQm = sapply(1:pcmax, function(n){
+## myQm = sapply(1:mypcmax, function(n){
 ##     var0(myCmprime[n])/var0(myCmprime[(tailCutoff-50):tailCutoff])
 ##   })
-## myPsprime = sapply(1:pcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
+## myPsprime = sapply(1:mypcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
 ## 
 ## outList = list(cmprime = myCmprime, pprime = myPsprime, n.sites = nrow(combInfo))
+## return(outList)
+## 
 ## }
 ```
 

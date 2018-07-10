@@ -7,22 +7,13 @@ output:
     keep_md: yes
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-library('LaCroixColoR')
-library(viridis)
-library(dplyr)
-library(qpctools)
-library(qvalue)
-setwd('~/Documents/qpc-maize/') #sorry world
 
-```
 
 Doing power simulations where we add selection along a latitudinal gradient.
 
 First need to make new allele frequencies at GWAS-detected SNPs that include selection. 
-```{r, eval=F}
 
+```r
 #load in data
 myI = 1
 myalpha = 0.01
@@ -109,14 +100,13 @@ write.table(sigGenos, file = paste(simPrefix, 'table.', myI, sep=""), row.names=
 test <- sapply(1:200, format_simfiles)
 test <- sapply(1:200, function(x){format_simfiles(myI = x,  simPrefix = 'data/simFiles/powerSimAlleles.0.05.')})
 test <- sapply(1:200, function(x){format_simfiles(myI = x,  simPrefix = 'data/simFiles/powerSimAlleles.0.005.')})
-
 ```
 
 
 Run the test on these new simulated sites.
 
-```{r, eval=F}
 
+```r
 load('data/euro.282.E.rda')
 
 euro282=myF
@@ -145,14 +135,13 @@ save(ceuroOut_power05, file='data/simFiles/ceuroOut_200_power05')
 
 ceuroOut_power005 = lapply(1:200,function(x){Qpceuro(x, myM = 906, sigPrefix = 'data/simFiles/powerSimAlleles.0.005.table.', gwasPrefix= 'data/simFiles/ldfiltered.euro.assoc.', mysigma = euro282, mypcmax = pcmax, myLambda = condEig$values, myU = condEig$vectors)})
 save(ceuroOut_power005, file='data/simFiles/ceuroOut_200_power005') 
-
 ```
 
 
 Look at the results from the simulations
 
-```{r}
 
+```r
 load('data/simFiles/ceuroOut_200_power005')
 cpvalsprime005 = sapply(ceuroOut_power005, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
 cqvalsprime005 = get_q_values(cpvalsprime005)
@@ -180,22 +169,65 @@ axis(2, las=2, at = seq(0,1,length.out=5), labels=seq(0,dim(cpvalsprime05)[2],le
 image(cpvalsprime005, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1), ylab = "simulated trait", main = "alpha = 0.005")
 axis(1, at = c(0,0.2,0.4,0.6,0.8,1), labels=round(c(0,0.2,0.4,0.6,0.8,1)*nrow(cpvalsprime05)))
 axis(2, las=2, at = seq(0,1,length.out=5), labels=seq(0,dim(cpvalsprime05)[2],length.out=5))
+```
 
+![](power_simulations_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+
+```r
 ##values for text
 prop05 <- function(pvals){apply(pvals, 1, function(x){sum(x< 0.05)/length(x)})}
 prop05(cpvalsprime05)[1:10]
-prop05(cpvalsprime)[1:10]
-prop05(cpvalsprime005)[1:10]
+```
 
+```
+##  [1] 1.000 0.980 0.745 0.000 0.990 1.000 1.000 1.000 1.000 0.580
+```
+
+```r
+prop05(cpvalsprime)[1:10]
+```
+
+```
+##  [1] 0.285 0.060 0.030 0.000 0.070 0.070 0.090 0.165 0.290 0.025
+```
+
+```r
+prop05(cpvalsprime005)[1:10]
+```
+
+```
+##  [1] 0.055 0.025 0.010 0.005 0.040 0.030 0.010 0.040 0.050 0.010
+```
+
+```r
 count05 <- function(pvals){apply(pvals, 1, function(x){sum(x< 0.05)})}
 count05(cpvalsprime05)[1:10]
+```
+
+```
+##  [1] 200 196 149   0 198 200 200 200 200 116
+```
+
+```r
 count05(cpvalsprime)[1:10]
+```
+
+```
+##  [1] 57 12  6  0 14 14 18 33 58  5
+```
+
+```r
 count05(cpvalsprime005)[1:10]
+```
+
+```
+##  [1] 11  5  2  1  8  6  2  8 10  2
 ```
 
 Are PCs with a stronger correlation to latitude most like to look like they're under selection??
 
-```{r}
+
+```r
 #load in PC and latitude data
 eurodat = read.table('data/eurolandraceinfo.csv', sep=',', head=T, stringsAsFactors=F)
 load('data/euro.282.condeig.rda')
@@ -223,3 +255,5 @@ plot(abs(latcors), bty="n", xlab = "", ylab = "abs(cor btw pc and latitude)", xa
 axis(1, lab = 1:21, at=1:21)
 axis(2, las=2)
 ```
+
+![](power_simulations_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
