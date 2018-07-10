@@ -42,24 +42,14 @@ tailCutoff = round(.9*length(myLambdas))
 ```
 
 ```{r qpcsims, eval=F}
-#function for calculating Qm
-calcQm <- function(myZ=MyZneutral, myU=eigF$vectors, myLambdas=eigF$values){
-  myZ = myZ[1:dim(myU)[1]] - mean(myZ)
-  myCm = (myZ %*% myU)/sqrt(myLambdas)
-  myQm = sapply(1:pcmax, function(n){
-    var0(myCm[n])/var0(myCm[(tailCutoff-50):tailCutoff])
-  })
-  myPs = sapply(1:pcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
-  retdf = list(qm = myQm, pvals = myPs, cm = t(myCm),stringsAsFactors = F)
-  return(retdf)
-}
+
 
 #simulate traits with neutrality and varying amounts of Va. Run this once and save output to save time.
 neutQpc <- function(myK,myU,myLambdas, myseed=1,myVa=1, myVe=0){
 set.seed(myseed)
 myZneutral = mvrnorm(n=1, rep(0,dim(myK)[1]), myVa*myK + myVe*diag(dim(myK)[1])) #neutral traits
-myQmneutral = calcQm(myZneutral, myU, myLambdas)
-return(myQmneutral)
+myQpcneutral = calcQpc(myZneutral, myU, myLambdas)
+return(myQpcneutral)
 }
 neutQpcVe0 = lapply(1:200, function(x){neutQpc(myK, myU, myLambdas, myseed=x, myVa=1, myVe=0)})#no Ve
 neutQpcVe.1 = lapply(1:200, function(x){neutQpc(myK, myU, myLambdas, myseed=x,myVa=1, myVe=.1)}) #Ve = Va/10

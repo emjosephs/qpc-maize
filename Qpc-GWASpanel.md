@@ -80,13 +80,13 @@ cat qpctools/R/calcQpc.R
 ##   tailCutoff = round(.9*length(myLambdas))
 ##   pcm = which(sapply(1:length(myLambdas), function(x){sum(myLambdas[1:x])/sum(myLambdas)}) > myPCcutoff)[1]
 ##   
-##   myZ = myZ[-length(myZ)] - mean(myZ)
+##   myZ = myZ[1:dim(myU)[1]] - mean(myZ)
 ##   myCm = (myZ %*% myU)/sqrt(myLambdas)
 ##   myQm = sapply(1:pcm, function(n){
 ##     var0(myCm[n])/var0(myCm[(tailCutoff-50):tailCutoff])
 ##   })
 ##   myPs = sapply(1:pcm, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
-##   retdf = data.frame(qm = myQm, pvals = myPs)
+##   retdf = list(cm = myCm, qm = myQm, pvals = myPs)
 ##   return(retdf)
 ##   }
 ## 
