@@ -4,10 +4,10 @@
 library(viridis)
 library(qpctools)
 library(qvalue)
-load("../data/ames_qxpc_data.rda")
+load("../data/ames_qpc_data.rda")
 ncpvals = sapply(ncamesOut, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
 ncqvals = get_q_values(ncpvals)
-pcpvals = sapply(qxpcamesOut, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
+pcpvals = sapply(qpcamesOut, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
 qvals = get_q_values(pcpvals)
 
 

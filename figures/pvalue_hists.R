@@ -4,18 +4,18 @@ library(qpctools)
 library(qvalue)
 
 ## AMES DATA
-load("../data/ames_qxpc_data.rda")
+load("../data/ames_qpc_data.rda")
 ncpvals = sapply(ncamesOut, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
 ncqvals = get_q_values(ncpvals)
-pcpvals = sapply(qxpcamesOut, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
+pcpvals = sapply(qpcamesOut, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
 qvals = get_q_values(pcpvals)
 
 ## EURO DATA
-load('../data/qxpc_euro_output.rda')
-pcpvalseuro = sapply(qxpceuroOut, function(x) {x$pprime})[1:17,] #matrix, rows are pvals, columns are traits
+load('../data/qpc_euro_output.rda')
+pcpvalseuro = sapply(qpceuroOut, function(x) {x$pprime})[1:17,] #matrix, rows are pvals, columns are traits
 qvalseuro = get_q_values(pcpvalseuro)
 
-load('../data/qxpc_euro_nc.rda')
+load('../data/qpc-euro-nc.rda')
 ncpvalseuro = sapply(ncEuroOut, function(x) {x$pprime})[1:17,] #matrix, rows are pvals, columns are traits
 ncqvalseuro = get_q_values(ncpvalseuro)
 

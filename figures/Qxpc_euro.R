@@ -6,7 +6,7 @@ library(qvalue)
 
 
 ##read in data from Qpc-maize.Rmd
-load('../data/euro_qxpc_data.rda')
+load('../data/euro_qpc_data.rda')
 load('../data/qxpc_euro_output.rda')
 #cEigVectors = as.matrix(read.table('../data/euro.cond.eigenvectors', header=F, stringsAsFactors = F))
 #cEigValues = as.matrix(read.table('../data/euro.cond.eigenvalues', header=F, stringsAsFactors = F))

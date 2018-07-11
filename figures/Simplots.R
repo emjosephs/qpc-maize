@@ -6,8 +6,8 @@ library(LaCroixColoR)
 ##load data
 load('../data/simFiles/qxpc_nonconditional_ames_200') #ncamesOut
 load('../data/simFiles/qxpc_nonconditional_euro_200') #nceuroOut
-load('../data/simFiles/qxpc_euro_200') #ceuroOut
-load('../data/simFiles/qxpc_ames_200') #camesOut
+load('../data/simFiles/qpc_euro_200') #ceuroOut
+load('../data/simFiles/qpc_ames_200') #camesOut
 
 ####compare nc and c for ames and euro (with inflation factor)
 nap = sapply(ncamesOut, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
@@ -45,33 +45,3 @@ mtext('B', side=3, adj=0, cex=2, line=0)
 
 
 dev.off()
-
-#getting the genic va p values
-napg = sapply(ncamesOut, function(x) {x$pc_p}) #matrix, rows are pvals, columns are traits
-capg = sapply(camesOut, function(x) {x$pc_p}) #matrix, rows are pvals, columns are traits
-nepg = sapply(nceuroOut, function(x) {x$pc_p}) #matrix, rows are pvals, columns are traits
-cepg = sapply(ceuroOut, function(x) {x$pc_p}) #matrix, rows are pvals, columns are traits
-
-
-postscript("Simplot_all.eps",height=8,width=10,paper="special",horizontal=FALSE,colormodel="cymk")
-par(xpd=F, mfrow = c(2,1), mar=c(5,5,2,2))
-
-
-plot(-1,-1, ylim = c(0,1), xlim = c(1,50), bty="n", xlab = "PC", ylab = "Proportion significant tests", xaxt="n", yaxt = "n")
-abline(h=0.05, col = mycol[6], lwd=2)
-test = barplot(rbind(prop05(napg)[1:10], prop05(nap)[1:10], prop05(capg)[1:10], prop05(cap)[1:10]), beside=T, border=NA, col = mycol[c(2:5)], ylim=c(0,1), add=T)
-axis(1, at = test[1,]+ 0.5, lab = 1:10, cex=1.5)
-legend('topleft', c(' Non-conditional (genic Va)',' Non-conditional',' Conditional (genic Va) ', ' Conditional'), ncol=2,fill = mycol[c(2:5)], border="white", bty="n", text.width=12)
-mtext('A', side=3, adj=0, cex=2, line=0)
-
-plot(-1,-1, ylim = c(0,1), xlim = c(1,50), bty="n", xlab = "PC", ylab = "Proportion significant tests", xaxt="n", yaxt = "n")
-abline(h=0.05, col = mycol[6], lwd=2)
-test = barplot(rbind(prop05(nepg)[1:10], prop05(nep)[1:10], prop05(cepg)[1:10], prop05(cep)[1:10]), beside=T, border=NA, col = mycol[c(2:5)], ylim=c(0,1), add=T)
-axis(1, at = test[1,]+ 0.5, lab = 1:10, cex=1.5)
-legend('topleft', c(' Non-conditional (genic Va)',' Non-conditional',' Conditional (genic Va) ', ' Conditional'), fill = mycol[c(2:5)], border="white", bty="n", ncol = 2, text.width=12)
-mtext('B', side=3, adj=0, cex=2, line=0)
-
-
-
-dev.off()
-
