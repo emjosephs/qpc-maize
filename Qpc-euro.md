@@ -23,7 +23,7 @@ sigma.cond = sigma11 - sigma12 %*% solve(sigma22) %*% sigma21
 condEig = eigen(sigma.cond)
 cEigVectors = condEig$vectors
 cEigValues = condEig$values
-save(cEigVectors, cEigValues, file = 'data/euro.282.condeig.rda')
+#save(cEigVectors, cEigValues, file = 'data/euro.282.condeig.rda')
 
 traitNames = read.table('data/blup.names', stringsAsFactors=F)$V1
 
