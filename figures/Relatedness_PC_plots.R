@@ -88,16 +88,3 @@ mtext('Combined PC 2', side=2, line = 5)
 dev.off()
 
 
-postscript("Supp_fig_pc10.eps",height=7,width=10,paper="special",horizontal=FALSE,colormodel="cymk")
-par(mfrow=c(1,1), par(mar=c(5,7,3,2)))
-plot(fgmerge$X10, fgmerge$X2, col = as.factor(fgmerge$Subpopulation),
-     lwd=2, bty="n", xlab = "", ylab = "", cex.lab=1.5, cex=1.5, yaxt="n", 
-     xaxt = "n", xlim = c(-0.25, 0.25), ylim = c(-0.2, 0.15))
-axis(1, lwd=2, cex.axis=1.5 )
-axis(2, lwd=2, cex.axis=1.5, las=2)
-#legend("bottomright", levels(as.factor(fgmerge$Subpopulation)), bty="n", pch=1, pt.lwd=2, col = mycol)
-legend("bottomleft", nicepops, bty="n", pch=1, pt.lwd=2, col = palette(), cex = 1.5)
-mtext('GWAS panel PC 10', side=1, line = 3)
-mtext('GWAS panel PC 2', side=2, line = 5)
-dev.off()
-

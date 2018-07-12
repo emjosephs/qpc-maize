@@ -75,4 +75,24 @@ legend('top', nicepops, bty="n", pch=1, pt.lwd=2, col = palette(), cex=1.5, ncol
 dev.off()
 
 
+postscript("Supp_fig_pc10.eps",height=7,width=10,paper="special",horizontal=FALSE,colormodel="cymk")
+par(mfrow=c(1,1), par(mar=c(5,7,3,2)))
+#plot(fgmerge$X10, fgmerge$X2, col = as.factor(fgmerge$Subpopulation),
+#     lwd=2, bty="n", xlab = "", ylab = "", cex.lab=1.5, cex=1.5, yaxt="n", 
+#     xaxt = "n", xlim = c(-0.25, 0.25), ylim = c(-0.2, 0.15))
+plot(fgmerge$X10, fgmerge$DaysToSilk, col = as.factor(fgmerge$Subpopulation),
+     lwd=2, bty="n", xlab = "", ylab = "", cex.lab=1.5, cex=1.5, yaxt="n", 
+     xaxt = "n")
+axis(1, lwd=2, cex.axis=1.5 )
+axis(2, lwd=2, cex.axis=1.5, las=2)
+#legend("bottomright", levels(as.factor(fgmerge$Subpopulation)), bty="n", pch=1, pt.lwd=2, col = mycol)
+abline(lm(fgmerge$DaysToSilk ~ fgmerge$X10), col='navy', lwd=2)
+abline(a=mean(fgmerge$DaysToSilk), b = 1.96*myCIsDTS[10], lty=2, col="#56B4E9", lwd=2)
+abline(a=mean(fgmerge$DaysToSilk), b = -1.96*myCIsDTS[10], lty=2, col="#56B4E9", lwd=2)
+legend("topright", nicepops, bty="n", pch=1, pt.lwd=2, col = palette(), cex = 1.5)
+mtext('GWAS panel PC 10', side=1, line = 3, cex=2)
+mtext('Days To Silk', side=2, line = 5, cex=2)
+dev.off()
+
+
 

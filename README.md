@@ -13,7 +13,7 @@ Rscript install_qpctools.R
 ```
 You must have the R packages devtools installed already
 
-Other required packages are *mass*, *dplyr*, *qvalue*, and *viridis*. I might make a nice script for installing these at some point.
+Other required packages are *mass*, *dplyr*, *qvalue*, [*LaCroixColoR*](https://github.com/johannesbjork/LaCroixColoR) and *viridis*
 
 ## Q<sub>pc</sub>
 **Qpc-gwaspanel.Rmd** has scripts for running Q<sub>pc</sub> in a panel of 240 maize lines with associated phenotypes.
@@ -27,12 +27,27 @@ Other required packages are *mass*, *dplyr*, *qvalue*, and *viridis*. I might ma
 
 **Simulations-polygenicqpc.Rmd** has code for running simulations on polygenic Q<sub>pc</sub> in the ames panel and European landraces. 
 
+I have not included the files needed to run the simulations because they are quite large, but I can provide them upon request or put them up on figshare.
 
 ## Data
 Here is a description of the files in data
 
-**263-gwas-results** has results from GWAS that correspond to Q<sub>pc</sub> analysis on polygenic scores in European landraces
+**263-gwas-results** has results from GWAS that correspond to Q<sub>pc</sub> analysis on polygenic scores in European landraces.
 
+**281-gwas-results** has results from GWAS that correspond to Q<sub>pc</sub> analysis on polygenic scores in the Ames panel. Both GWAS folders only have significant hits, the entire output file from GEMMA is available on figshare.
+
+The kinship matrix used in Q<sub>pc</sub> on traits in the GWAS Panel is in **All\_240E.nomaf.nomissing.K**.
+
+The kinship matrix used in Q<sub>pc</sub> on polygenic scores in the Ames panel is in **ames.281E.K.rda** and the matrix for the Ames panel only is in **amesOnly.E.K.rda**
+
+The kinship matrix used in Q<sub>pc</sub> on on polygenic scores in the European landraces is in **euro.282.E.rda** and the landrace-only matrix (after eigendecomposition) is in **euro-only-eigen.rda**.
+
+**240.names**, and **merged263Landraces.names** have the names of individuals in the kinship matrices **All\_240E.nomaf.nomissing.K** and **euro.282.E.rda** respectively. **blup.names** ahs the names of the traits in the order they are indexed. 
+
+**FlintGarciaTableS1.csv** has data for the GWAS panel from (Flint-Garcia et al. 2005)[https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1365-313X.2005.02591.x] and **eurolandraceinfo.csv** has info about the European landraces.
+
+## Figures
+Here are scripts to generate figures used in the preprint
 
 
 ## Etc
