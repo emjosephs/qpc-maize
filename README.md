@@ -16,18 +16,20 @@ You must have the R packages devtools installed already
 Other required packages are *mass*, *dplyr*, *qvalue*, [*LaCroixColoR*](https://github.com/johannesbjork/LaCroixColoR) and *viridis*
 
 ## Q<sub>pc</sub>
-**Qpc-gwaspanel.Rmd** has scripts for running Q<sub>pc</sub> in a panel of 240 maize lines with associated phenotypes.
+**Qpc-gwaspanel.md** has scripts for running Q<sub>pc</sub> in a panel of 240 maize lines with associated phenotypes.
 
-**Qpc-ames.Rmd** has scripts for running Q<sub>pc</sub> on polygenic scores to test for polygenic adaptation in the Ames panel.
+**Qpc-ames.md** has scripts for running Q<sub>pc</sub> on polygenic scores to test for polygenic adaptation in the Ames panel.
 
-**Qpc-euro.Rmd** has scripts for running Q<sub>pc</sub> on polygenic scores to test for polygenic adaptation in European landraces.
+**Qpc-euro.md** has scripts for running Q<sub>pc</sub> on polygenic scores to test for polygenic adaptation in European landraces.
 
 ## Simulations
-**Simulations-traitqpc.Rmd** has code for running simulations on trait Q<sub>pc</sub> in the GWAS panel. 
+**Simulations-traitqpc.md** has code for running simulations on trait Q<sub>pc</sub> in the GWAS panel. 
 
-**Simulations-polygenicqpc.Rmd** has code for running simulations on polygenic Q<sub>pc</sub> in the ames panel and European landraces. 
+**Simulations-polygenicqpc.md** has code for running simulations on polygenic Q<sub>pc</sub> in the ames panel and European landraces. 
 
-I have not included the files needed to run the simulations because they are quite large, but I can provide them upon request or put them up on figshare.
+**power\_simulations.md** has code for running power simulations in the European landraces.
+
+I have not included the files needed to run the simulations because they are quite large, but I can provide them upon request or put them up on figshare if there is demand.
 
 ## Data
 Here is a description of the files in data
