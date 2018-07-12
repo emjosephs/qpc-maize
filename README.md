@@ -44,7 +44,7 @@ The kinship matrix used in Q<sub>pc</sub> on on polygenic scores in the European
 
 **240.names**, and **merged263Landraces.names** have the names of individuals in the kinship matrices **All\_240E.nomaf.nomissing.K** and **euro.282.E.rda** respectively. **blup.names** ahs the names of the traits in the order they are indexed. 
 
-**FlintGarciaTableS1.csv** has data for the GWAS panel from (Flint-Garcia et al. 2005)[https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1365-313X.2005.02591.x] and **eurolandraceinfo.csv** has info about the European landraces.
+**FlintGarciaTableS1.csv** has data for the GWAS panel from [Flint-Garcia et al. 2005](https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1365-313X.2005.02591.x) and **eurolandraceinfo.csv** has info about the European landraces.
 
 ## Figures
 Here are scripts to generate figures used in the preprint
