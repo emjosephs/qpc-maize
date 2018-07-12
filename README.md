@@ -32,9 +32,9 @@ I have not included the files needed to run the simulations because they are qui
 ## Data
 Here is a description of the files in data
 
-**263-gwas-results** has results from GWAS that correspond to Q<sub>pc</sub> analysis on polygenic scores in European landraces.
+**263-gwas-results** has results from GWAS that correspond to Q<sub>pc</sub> analysis on polygenic scores in European landraces. These files only have significant hits, the full association mapping results are on [figshare](https://figshare.com/articles/263_GWAS/6807473)
 
-**281-gwas-results** has results from GWAS that correspond to Q<sub>pc</sub> analysis on polygenic scores in the Ames panel. Both GWAS folders only have significant hits, the entire output file from GEMMA is available on figshare.
+**281-gwas-results** has results from GWAS that correspond to Q<sub>pc</sub> analysis on polygenic scores in the Ames panel. The entire output file from GEMMA is available on [figshare](https://figshare.com/articles/281_GWAS/6807461).
 
 The kinship matrix used in Q<sub>pc</sub> on traits in the GWAS Panel is in **All\_240E.nomaf.nomissing.K**.
 
