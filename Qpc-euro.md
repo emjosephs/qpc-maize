@@ -38,11 +38,180 @@ niceTraitnames = sapply(traitNames, function(x){
 #get cutoffs for pcs based on % variation explained
 varexp = cEigValues/sum(cEigValues)
 sumexp = sapply(1:length(varexp), function(x){sum(varexp[1:x])})
-par(mfrow=c(1,2), mar=c(5,5,1,1))
+
+
 
 #get cutoffs for how many pcs to look at
 pcmax = which(sumexp > 0.30)[1]
+pcmax
 ```
+
+```
+## [1] 17
+```
+
+```r
+library(nFactors)
+```
+
+```
+## Loading required package: MASS
+```
+
+```
+## 
+## Attaching package: 'MASS'
+```
+
+```
+## The following object is masked from 'package:dplyr':
+## 
+##     select
+```
+
+```
+## Loading required package: psych
+```
+
+```
+## Loading required package: boot
+```
+
+```
+## 
+## Attaching package: 'boot'
+```
+
+```
+## The following object is masked from 'package:psych':
+## 
+##     logit
+```
+
+```
+## Loading required package: lattice
+```
+
+```
+## 
+## Attaching package: 'lattice'
+```
+
+```
+## The following object is masked from 'package:boot':
+## 
+##     melanoma
+```
+
+```
+## 
+## Attaching package: 'nFactors'
+```
+
+```
+## The following object is masked from 'package:lattice':
+## 
+##     parallel
+```
+
+```r
+myscree = nScree(cEigValues)
+myscree$Components[1]
+```
+
+```
+##   noc
+## 1  56
+```
+
+```r
+library('AssocTests')
+```
+
+```
+## Loading required package: cluster
+```
+
+```
+## Loading required package: mvtnorm
+```
+
+```
+## Loading required package: combinat
+```
+
+```
+## 
+## Attaching package: 'combinat'
+```
+
+```
+## The following object is masked from 'package:utils':
+## 
+##     combn
+```
+
+```
+## Loading required package: fExtremes
+```
+
+```
+## Loading required package: timeDate
+```
+
+```
+## Loading required package: timeSeries
+```
+
+```
+## 
+## Attaching package: 'timeSeries'
+```
+
+```
+## The following object is masked from 'package:psych':
+## 
+##     outlier
+```
+
+```
+## Loading required package: fBasics
+```
+
+```
+## 
+## Attaching package: 'fBasics'
+```
+
+```
+## The following object is masked from 'package:psych':
+## 
+##     tr
+```
+
+```
+## Loading required package: fGarch
+```
+
+```r
+mytw = tw(cEigValues, eigenL = length(cEigValues))
+mytw$SigntEigenL
+```
+
+```
+## [1] 124
+```
+
+```r
+plot(cEigValues, bty="n", xlab = "PCs", ylab = "Eigenvalues")
+abline(v = pcmax, col = viridis(6)[3], lwd=2)
+abline(v = myscree$Components[1], col = viridis(6)[4], lwd=2)
+abline(v = mytw$SigntEigenL, col = viridis(6)[5], lwd=2)
+
+legend('topright',c('30% var explained','Castells rule','Tracy Widom'), col = viridis(6)[3:5], lwd=2, bty="n")
+```
+
+![](Qpc-euro_files/figure-html/pccutoffs-1.png)<!-- -->
 
 # Run Qpc
 The function is in qpctools/R/QpcEuro.R
@@ -277,6 +446,20 @@ legend(-0.2,-0.15, c('P value',levels(mysig2)), fill=c('white',mycol), border=c(
 ```r
 #lat long plot
 library(maps)
+```
+
+```
+## 
+## Attaching package: 'maps'
+```
+
+```
+## The following object is masked from 'package:cluster':
+## 
+##     votes.repub
+```
+
+```r
 load("data/euro_qpc_data.rda")
 eurodat = read.table('data/eurolandraceinfo.csv', sep=',', head=T, stringsAsFactors=F)
 

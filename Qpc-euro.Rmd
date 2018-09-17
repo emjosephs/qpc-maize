@@ -44,10 +44,29 @@ niceTraitnames = sapply(traitNames, function(x){
 #get cutoffs for pcs based on % variation explained
 varexp = cEigValues/sum(cEigValues)
 sumexp = sapply(1:length(varexp), function(x){sum(varexp[1:x])})
-par(mfrow=c(1,2), mar=c(5,5,1,1))
+
+
 
 #get cutoffs for how many pcs to look at
 pcmax = which(sumexp > 0.30)[1]
+pcmax
+
+library(nFactors)
+myscree = nScree(cEigValues)
+myscree$Components[1]
+
+library('AssocTests')
+mytw = tw(cEigValues, eigenL = length(cEigValues))
+mytw$SigntEigenL
+
+
+
+plot(cEigValues, bty="n", xlab = "PCs", ylab = "Eigenvalues")
+abline(v = pcmax, col = viridis(6)[3], lwd=2)
+abline(v = myscree$Components[1], col = viridis(6)[4], lwd=2)
+abline(v = mytw$SigntEigenL, col = viridis(6)[5], lwd=2)
+
+legend('topright',c('30% var explained','Castells rule','Tracy Widom'), col = viridis(6)[3:5], lwd=2, bty="n")
 
 
 ```

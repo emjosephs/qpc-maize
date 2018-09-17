@@ -123,13 +123,109 @@ library(nFactors)
 
 ```r
 myscree = nScree(cEigValues)
+myscree$Components[1]
+```
 
+```
+##   noc
+## 1 107
+```
+
+```r
+library('AssocTests')
+```
+
+```
+## Loading required package: cluster
+```
+
+```
+## Loading required package: mvtnorm
+```
+
+```
+## Loading required package: combinat
+```
+
+```
+## 
+## Attaching package: 'combinat'
+```
+
+```
+## The following object is masked from 'package:utils':
+## 
+##     combn
+```
+
+```
+## Loading required package: fExtremes
+```
+
+```
+## Loading required package: timeDate
+```
+
+```
+## Loading required package: timeSeries
+```
+
+```
+## 
+## Attaching package: 'timeSeries'
+```
+
+```
+## The following object is masked from 'package:psych':
+## 
+##     outlier
+```
+
+```
+## Loading required package: fBasics
+```
+
+```
+## 
+## Attaching package: 'fBasics'
+```
+
+```
+## The following object is masked from 'package:psych':
+## 
+##     tr
+```
+
+```
+## Loading required package: fGarch
+```
+
+```r
+mytw = tw(cEigValues, eigenL = length(cEigValues))
+mytw$SigntEigenL
+```
+
+```
+## [1] 230
+```
+
+```r
 #get cutoffs for how many pcs to look at
 pcmax = which(sumexp > 0.3)[1]
+pcmax
+```
 
+```
+## [1] 182
+```
+
+```r
 plot(cEigValues, bty="n", xlab = "PCs of conditional matrix", ylab = "Eigenvalues")
 abline(v = pcmax, col = viridis(6)[3], lwd=2)
 abline(v = myscree$Components[1], col = viridis(6)[4], lwd=2)
+abline(v = mytw$SigntEigenL, col = viridis(6)[5], lwd=2)
+
+legend('topright',c('30% var explained','Castells rule','Tracy Widom'), col = viridis(6)[3:5], lwd=2, bty="n")
 ```
 
 ![](Qpc-ames_files/figure-html/pccutoffs-1.png)<!-- -->
