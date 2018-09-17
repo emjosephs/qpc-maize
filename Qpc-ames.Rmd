@@ -59,16 +59,26 @@ traitNames = read.table('data/blup.names', stringsAsFactors=F)$V1
 ```
 
 ```{r pccutoffs}
+
 #get cutoffs for pcs based on % variation explained
 varexp = cEigValues/sum(cEigValues)
 sumexp = sapply(1:length(varexp), function(x){sum(varexp[1:x])})
-par(mfrow=c(1,2), mar=c(5,5,1,1))
+
+#get cutoff with scree plot
+library(nFactors)
+myscree = nScree(cEigValues)
 
 #get cutoffs for how many pcs to look at
 pcmax = which(sumexp > 0.3)[1]
 
+plot(cEigValues, bty="n", xlab = "PCs of conditional matrix", ylab = "Eigenvalues")
+abline(v = pcmax, col = viridis(6)[3], lwd=2)
+abline(v = myscree$Components[1], col = viridis(6)[4], lwd=2)
+
+
 #remove the last end of PCs 
 tailCutoff = round(.9*length(cEigValues))
+
 ```
 
 

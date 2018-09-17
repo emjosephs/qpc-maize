@@ -13,6 +13,7 @@ palette(c('darkgray',lacroix_palette('Pamplemousse')[c(3,1,4,5,6)]))
 #palette(mycol[c(1,4,5,3,7,8)])
 nicepops = c('mixed','non-stiff stalk','popcorn','stiff-stalk','sweet','tropical') #readable names
 postscript("Qpc_results.eps",height=6,width=12,paper="special",horizontal=FALSE,colormodel="cymk")
+#png("Qpc_results.png",height=400,width=800)
 
 #par(mar=c(8,15,5,3), xpd=TRUE, mfrow=c(1,3), cex.axis=1.5, cex.lab=1.5)
 par(mar=c(11,15,7,3), xpd=TRUE,  cex.axis=1.5, cex.lab=1.5)
@@ -81,7 +82,7 @@ par(mfrow=c(1,1), par(mar=c(5,7,3,2)))
 #     lwd=2, bty="n", xlab = "", ylab = "", cex.lab=1.5, cex=1.5, yaxt="n", 
 #     xaxt = "n", xlim = c(-0.25, 0.25), ylim = c(-0.2, 0.15))
 plot(fgmerge$X10, fgmerge$DaysToSilk, col = as.factor(fgmerge$Subpopulation),
-     lwd=2, bty="n", xlab = "", ylab = "", cex.lab=1.5, cex=1.5, yaxt="n", 
+     lwd=2, bty="n", xlab = "PC 10", ylab = "Days to Silk", cex.lab=1.5, cex=1, yaxt="n", 
      xaxt = "n")
 axis(1, lwd=2, cex.axis=1.5 )
 axis(2, lwd=2, cex.axis=1.5, las=2)

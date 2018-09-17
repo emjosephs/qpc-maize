@@ -51,7 +51,180 @@ sumexp = sapply(1:length(varexp), function(x){sum(varexp[1:x])})
 
 #get cutoffs for how many pcs to look at
 pcmax = which(sumexp > 0.3)[1]
+pcmax
+```
 
+```
+## [1] 22
+```
+
+```r
+library(nFactors)
+```
+
+```
+## Loading required package: MASS
+```
+
+```
+## 
+## Attaching package: 'MASS'
+```
+
+```
+## The following object is masked from 'package:dplyr':
+## 
+##     select
+```
+
+```
+## Loading required package: psych
+```
+
+```
+## Loading required package: boot
+```
+
+```
+## 
+## Attaching package: 'boot'
+```
+
+```
+## The following object is masked from 'package:psych':
+## 
+##     logit
+```
+
+```
+## Loading required package: lattice
+```
+
+```
+## 
+## Attaching package: 'lattice'
+```
+
+```
+## The following object is masked from 'package:boot':
+## 
+##     melanoma
+```
+
+```
+## 
+## Attaching package: 'nFactors'
+```
+
+```
+## The following object is masked from 'package:lattice':
+## 
+##     parallel
+```
+
+```r
+myscree = nScree(myLambdas)
+myscree$Components[1]
+```
+
+```
+##   noc
+## 1  24
+```
+
+```r
+library('AssocTests')
+```
+
+```
+## Loading required package: cluster
+```
+
+```
+## Loading required package: mvtnorm
+```
+
+```
+## Loading required package: combinat
+```
+
+```
+## 
+## Attaching package: 'combinat'
+```
+
+```
+## The following object is masked from 'package:utils':
+## 
+##     combn
+```
+
+```
+## Loading required package: fExtremes
+```
+
+```
+## Loading required package: timeDate
+```
+
+```
+## Loading required package: timeSeries
+```
+
+```
+## 
+## Attaching package: 'timeSeries'
+```
+
+```
+## The following object is masked from 'package:psych':
+## 
+##     outlier
+```
+
+```
+## Loading required package: fBasics
+```
+
+```
+## 
+## Attaching package: 'fBasics'
+```
+
+```
+## The following object is masked from 'package:psych':
+## 
+##     tr
+```
+
+```
+## Loading required package: fGarch
+```
+
+```r
+mytw = tw(myLambdas, eigenL = length(myLambdas))
+mytw$SigntEigenL
+```
+
+```
+## [1] 26
+```
+
+```r
+#get cutoffs for how many pcs to look at
+pcmax = which(sumexp > 0.3)[1]
+
+plot(myLambdas, bty="n", xlab = "PCs", ylab = "Eigenvalues")
+abline(v = pcmax, col = viridis(6)[3], lwd=2)
+abline(v = myscree$Components[1], col = viridis(6)[4], lwd=2)
+abline(v = mytw$SigntEigenL, col = viridis(6)[5], lwd=2)
+
+legend('topright',c('30% var explained','Castells rule','Tracy Widom'), col = viridis(6)[3:5], lwd=2, bty="n")
+```
+
+![](Qpc-GWASpanel_files/figure-html/pccutoff-1.png)<!-- -->
+
+```r
 #remove the last end of PCs since these are likely to be extra variable
 tailCutoff = round(.9*length(myLambdas))
 ```

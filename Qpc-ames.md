@@ -56,11 +56,85 @@ traitNames = read.table('data/blup.names', stringsAsFactors=F)$V1
 #get cutoffs for pcs based on % variation explained
 varexp = cEigValues/sum(cEigValues)
 sumexp = sapply(1:length(varexp), function(x){sum(varexp[1:x])})
-par(mfrow=c(1,2), mar=c(5,5,1,1))
+
+#get cutoff with scree plot
+library(nFactors)
+```
+
+```
+## Loading required package: MASS
+```
+
+```
+## 
+## Attaching package: 'MASS'
+```
+
+```
+## The following object is masked from 'package:dplyr':
+## 
+##     select
+```
+
+```
+## Loading required package: psych
+```
+
+```
+## Loading required package: boot
+```
+
+```
+## 
+## Attaching package: 'boot'
+```
+
+```
+## The following object is masked from 'package:psych':
+## 
+##     logit
+```
+
+```
+## Loading required package: lattice
+```
+
+```
+## 
+## Attaching package: 'lattice'
+```
+
+```
+## The following object is masked from 'package:boot':
+## 
+##     melanoma
+```
+
+```
+## 
+## Attaching package: 'nFactors'
+```
+
+```
+## The following object is masked from 'package:lattice':
+## 
+##     parallel
+```
+
+```r
+myscree = nScree(cEigValues)
 
 #get cutoffs for how many pcs to look at
 pcmax = which(sumexp > 0.3)[1]
 
+plot(cEigValues, bty="n", xlab = "PCs of conditional matrix", ylab = "Eigenvalues")
+abline(v = pcmax, col = viridis(6)[3], lwd=2)
+abline(v = myscree$Components[1], col = viridis(6)[4], lwd=2)
+```
+
+![](Qpc-ames_files/figure-html/pccutoffs-1.png)<!-- -->
+
+```r
 #remove the last end of PCs 
 tailCutoff = round(.9*length(cEigValues))
 ```
