@@ -17,9 +17,10 @@ output:
 
 
 ```r
-i=1
-x1 <- runif(1) #getting a random number so there's a seed
-save(".Random.seed", file=paste("data/figure_sims/randomSeed.",i, sep=""))
+#i=1
+#x1 <- runif(1) #getting a random number so there's a seed
+#save(".Random.seed", file=paste("data/figure_sims/randomSeed.",i, sep=""))
+load('data/figure_sims/randomSeed.1')
 
 npops=3
 Faa = 0.15
@@ -180,7 +181,8 @@ So what does the final figure look like??
 
 
 ```r
-par(mfrow=c(1,4), mar = c(5,5,2,2))
+postscript("conceptfigure.eps",height=5,width=10,paper="special",horizontal=FALSE,colormodel="cymk")
+par(mfrow=c(1,4), mar = c(5,5,2,2), cex.lab = 1.5, cex.axis=1.5)
 myPhenos = unlist(popPhenos) - mean(unlist(popPhenos))
 plot(myEig$vectors[,1], myPhenos[1:nind], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50)), bty="n", xlab = "PC1", ylab ="Trait", lwd=2)
 myl = lm(myPhenos[1:nind]~ myEig$vectors[,1])
@@ -197,7 +199,9 @@ myl = lm(myPhenos[1:nind]~ myEig$vectors[,3])
 abline(myl, lwd=2, col = mycol[5])
 
 
-plot(myVaPC[1:50], bty="n", lwd=2, col = mycol[4], xlab = "PC", ylab = "Estimated Va")
+plot(myVaPC[1:100], bty="n", lwd=2, col = mycol[4], xlab = "PC", ylab = "Estimated Va")
+
+dev.off()
 ```
 
 TODO add CIs
