@@ -13,7 +13,7 @@ output:
 
 
 
-What if I do 4 populations, like in my talks?
+3 populations
 
 
 ```r
@@ -21,12 +21,11 @@ i=1
 x1 <- runif(1) #getting a random number so there's a seed
 save(".Random.seed", file=paste("data/figure_sims/randomSeed.",i, sep=""))
 
-npops=4
+npops=3
 Faa = 0.15
 
-sigma = matrix(0,nrow=4, ncol=4)
+sigma = matrix(0,nrow=3, ncol=3)
 sigma[1:2,1:2] = matrix(Faa/2, nrow=2, ncol=2)
-sigma[3:4,3:4] = sigma[1:2,1:2]
 diag(sigma) = Faa
 library(viridis)
 ```
@@ -39,7 +38,7 @@ library(viridis)
 heatmap(sigma, col = viridis(4))
 ```
 
-![](conceptual-figure_files/figure-html/4pops-1.png)<!-- -->
+![](conceptual-figure_files/figure-html/3pops-1.png)<!-- -->
 
 ```r
 #simulate allele freqs in two pops at these loci
@@ -49,25 +48,30 @@ presentPops1 = sapply(ancPop, function(x){mvrnorm(n=1, mu = rep(x,npops), x*(1-x
 presentPops = apply(presentPops1, c(1,2), myBound) #deal with numbers greater or less than 0 (the outer bounds are sticky)
 
 #plot(ancPop, bty='n', xlab = "locus", ylab = "p")
-#sapply(1:100, function(x){lines(c(x,x), c(presentPops[1,x], presentPops[2,x]))})
+#sapply(1:500, function(x){lines(c(x,x), c(presentPops[1,x], presentPops[2,x]))})
 
 #get the population genotypes
 npop = 50
 popGenos = lapply(1:npops, function(x) getPopGenos(x, presentPops, npop)) #a list of elements, each is a population
 
 #make a kinship matrix
-myG = rbind(popGenos[[1]], popGenos[[2]], popGenos[[3]], popGenos[[4]])/2
+myG = rbind(popGenos[[1]], popGenos[[2]], popGenos[[3]])/2
 myK = make_k(myG)
 heatmap(myK)
 ```
 
-![](conceptual-figure_files/figure-html/4pops-2.png)<!-- -->
+![](conceptual-figure_files/figure-html/3pops-2.png)<!-- -->
 
 ```r
 myEig = eigen(myK)
 
-mycol = lacroix_palette('Mango')[1:4]
-#plot(1:50,myEig$values[1:50])
+mycol = lacroix_palette('Mango')
+plot(myEig$values, lwd=2, bty="n", col = mycol[6], xlab = "PC", ylab = "Eigenvalue")
+```
+
+![](conceptual-figure_files/figure-html/3pops-3.png)<!-- -->
+
+```r
 #plot(myEig$vectors[,1], myEig$vectors[,2], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50), rep(mycol[4], 50)), bty='n', xlab= 'PC1', ylab = 'PC2', lwd=2, xlim = c(-.2, .2))
 #legend('topright', c('pop1','pop2', 'pop3','pop4'), bty="n", pch=1, pt.lwd=2, col = mycol)
 
@@ -81,39 +85,31 @@ popPhenos = getPopPhenos(popGenos, beetas)
 
 #plot(popPhenos[[1]], popPhenosNoise[[1]])
 
-
+nind = npops*npop - 1
 #myPhenos = unlist(popPhenosNoise)
-myPhenos = unlist(popPhenos)
-plot(myEig$vectors[,1], myPhenos[1:199], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50), rep(mycol[4], 50)), bty="n", xlab = "PC1", ylab ="Sim phenos", lwd=2)
-myl = lm(myPhenos[1:199]~ myEig$vectors[,1])
+myPhenos = unlist(popPhenos) - mean(unlist(popPhenos))
+plot(myEig$vectors[,1], myPhenos[1:nind], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50)), bty="n", xlab = "PC1", ylab ="Sim phenos", lwd=2)
+myl = lm(myPhenos[1:nind]~ myEig$vectors[,1])
 abline(myl)
 ```
 
-![](conceptual-figure_files/figure-html/4pops-3.png)<!-- -->
+![](conceptual-figure_files/figure-html/3pops-4.png)<!-- -->
 
 ```r
-plot(myEig$vectors[,2], myPhenos[1:199], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50), rep(mycol[4], 50)), bty="n", xlab = "PC1", ylab ="Sim phenos", lwd=2)
-myl = lm(myPhenos[1:199]~ myEig$vectors[,2])
+plot(myEig$vectors[,2], myPhenos[1:nind], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50), rep(mycol[4], 50)), bty="n", xlab = "PC1", ylab ="Sim phenos", lwd=2)
+myl = lm(myPhenos[1:nind]~ myEig$vectors[,2])
 abline(myl)
 ```
 
-![](conceptual-figure_files/figure-html/4pops-4.png)<!-- -->
+![](conceptual-figure_files/figure-html/3pops-5.png)<!-- -->
 
 ```r
-plot(myEig$vectors[,3], myPhenos[1:199], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50), rep(mycol[4], 50)), bty="n", xlab = "PC1", ylab ="Sim phenos",lwd=2)
-myl = lm(myPhenos[1:199]~ myEig$vectors[,3])
+plot(myEig$vectors[,3], myPhenos[1:nind], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50), rep(mycol[4], 50)), bty="n", xlab = "PC1", ylab ="Sim phenos",lwd=2)
+myl = lm(myPhenos[1:nind]~ myEig$vectors[,3])
 abline(myl)
 ```
 
-![](conceptual-figure_files/figure-html/4pops-5.png)<!-- -->
-
-```r
-plot(myEig$vectors[,4], myPhenos[1:199], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50), rep(mycol[4], 50)), bty="n", xlab = "PC1", ylab ="Sim phenos", lwd=2)
-myl = lm(myPhenos[1:199]~ myEig$vectors[,4])
-abline(myl)
-```
-
-![](conceptual-figure_files/figure-html/4pops-6.png)<!-- -->
+![](conceptual-figure_files/figure-html/3pops-6.png)<!-- -->
 
 
 Now to show how we're estimating Va with the lower pcs
@@ -128,7 +124,7 @@ myVaGeno
 ```
 
 ```
-## [1] 157.0441
+## [1] 158.4759
 ```
 
 ```r
@@ -137,7 +133,7 @@ myVaAnc
 ```
 
 ```
-## [1] 161.6824
+## [1] 170.628
 ```
 
 ```r
@@ -148,17 +144,17 @@ myCs = sapply(1:ninds, function(x){
 }) #project traits onto PCs
 
 
-myVaAll = var0(myCs[1:198])/2
+myVaAll = var0(myCs[1:(nind-1)])/2
 myVaAll 
 ```
 
 ```
-## [1] 179.3133
+## [1] 169.7287
 ```
 
 ```r
 #plot Va estimates
-myVaPC = sapply(myCs[1:198], var0)/2
+myVaPC = sapply(myCs[1:(nind-1)], var0)/2
 hist(myVaPC, col = mycol[4], border="white", main = "") ##this is the right distribution, right?
 ```
 
@@ -177,6 +173,31 @@ summary(myVaPC)
 
 ```
 ##      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-##    0.0023   12.3227   79.4457  179.3133  249.2019 2311.4643
+##    0.0016   12.7532  105.6428  169.7287  223.4823 1334.2860
 ```
 
+So what does the final figure look like??
+
+
+```r
+par(mfrow=c(1,4), mar = c(5,5,2,2))
+myPhenos = unlist(popPhenos) - mean(unlist(popPhenos))
+plot(myEig$vectors[,1], myPhenos[1:nind], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50)), bty="n", xlab = "PC1", ylab ="Trait", lwd=2)
+myl = lm(myPhenos[1:nind]~ myEig$vectors[,1])
+abline(myl, lwd=2, col = mycol[5])
+
+
+plot(myEig$vectors[,2], myPhenos[1:nind], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50), rep(mycol[4], 50)), bty="n", xlab = "PC1", ylab ="Trait", lwd=2)
+myl = lm(myPhenos[1:nind]~ myEig$vectors[,2])
+abline(myl, lwd=2, col = mycol[5])
+
+
+plot(myEig$vectors[,3], myPhenos[1:nind], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50), rep(mycol[4], 50)), bty="n", xlab = "PC1", ylab ="Trait",lwd=2)
+myl = lm(myPhenos[1:nind]~ myEig$vectors[,3])
+abline(myl, lwd=2, col = mycol[5])
+
+
+plot(myVaPC[1:50], bty="n", lwd=2, col = mycol[4], xlab = "PC", ylab = "Estimated Va")
+```
+
+TODO add CIs
