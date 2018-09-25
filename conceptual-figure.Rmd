@@ -20,6 +20,10 @@ if (x<0) {x=0}
   return(x)
 }
 
+calcVa = function (afs, betas) 
+{
+    return(sum(2 * afs * (1 - afs) * (betas^2)))
+}
 
 getPopGenos <- function(p, pops, popSize){ #turns allele frequencies into individual genotypes, p is row, pops is the matrix of frequencies, popSize is the # of individuals per pop
   indFreqs = t(matrix(rep(pops[p,],popSize),nrow=nloci,ncol=popSize))
@@ -44,9 +48,7 @@ getBetas <- function(res, colu, loci){  #get betas including 0s that weren't tes
 ```
 
 
-Simulate two populations of maize under mvn
-
-```{r}
+```{r twopops, echo=F, eval=F}
 
 i=1
 x1 <- runif(1) #getting a random number so there's a seed
@@ -87,12 +89,29 @@ plot(1:50,myEig$values[1:50])
 plot(myEig$vectors[,1], myEig$vectors[,2], col = c(rep(mycol[1], 50),rep(mycol[2], 50)), bty='n', xlab= 'PC1', ylab = 'PC2', lwd=2, xlim = c(-.2, .2))
 legend('topright', c('pop1','pop2'), bty="n", pch=1, pt.lwd=2, col = mycol)
 
+
+beetas = matrix(c(rnorm(nloci)), ncol=1, nrow=nloci) #half are 0, half are from a normal distribution
+
+#if (opt$environmental_shift == TRUE){pop.phenos = myShift(pop.phenos)}
+
+#individual noise shifts
+popPhenos = getPopPhenos(popGenos, beetas)
+popPhenosNoise = lapply(popPhenos, function(x){x + rnorm(length(x), mean=0, sd=sd(x)/2 )})
+
+#plot(popPhenos[[1]], popPhenosNoise[[1]])
+
+
+myPhenos = unlist(popPhenosNoise)
+plot(myEig$vectors[,1], myPhenos[1:99], col = c(rep(mycol[1], 50),rep(mycol[2], 50)), bty="n", xlab = "PC1", ylab ="Sim phenos")
+myl = lm(myPhenos[1:99]~ myEig$vectors[,1])
+abline(myl)
+
 ```
+
 
 What if I do 4 populations, like in my talks?
 
-
-```{r}
+```{r 4pops, echo=T, eval=T}
 i=1
 x1 <- runif(1) #getting a random number so there's a seed
 save(".Random.seed", file=paste("data/figure_sims/randomSeed.",i, sep=""))
@@ -129,27 +148,79 @@ heatmap(myK)
 myEig = eigen(myK)
 
 mycol = lacroix_palette('Mango')[1:4]
-plot(1:50,myEig$values[1:50])
-plot(myEig$vectors[,1], myEig$vectors[,2], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50), rep(mycol[4], 50)), bty='n', xlab= 'PC1', ylab = 'PC2', lwd=2, xlim = c(-.2, .2))
-legend('topright', c('pop1','pop2', 'pop3','pop4'), bty="n", pch=1, pt.lwd=2, col = mycol)
+#plot(1:50,myEig$values[1:50])
+#plot(myEig$vectors[,1], myEig$vectors[,2], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50), rep(mycol[4], 50)), bty='n', xlab= 'PC1', ylab = 'PC2', lwd=2, xlim = c(-.2, .2))
+#legend('topright', c('pop1','pop2', 'pop3','pop4'), bty="n", pch=1, pt.lwd=2, col = mycol)
 
-plot(myEig$vectors[,3], myEig$vectors[,4], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50), rep(mycol[4], 50)), bty='n', xlab= 'PC3', ylab = 'PC4', lwd=2, xlim = c(-.2, .2))
-legend('topright', c('pop1','pop2', 'pop3','pop4'), bty="n", pch=1, pt.lwd=2, col = mycol)
+#plot(myEig$vectors[,3], myEig$vectors[,4], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50), rep(mycol[4], 50)), bty='n', xlab= 'PC3', ylab = 'PC4', lwd=2, xlim = c(-.2, .2))
+#legend('topright', c('pop1','pop2', 'pop3','pop4'), bty="n", pch=1, pt.lwd=2, col = mycol)
 
+beetas = matrix(c(rnorm(nloci)), ncol=1, nrow=nloci) 
+popPhenos = getPopPhenos(popGenos, beetas)
+#individual noise shifts
+#popPhenosNoise = lapply(popPhenos, function(x){x + rnorm(length(x), mean=0, sd=sd(x)/2 )})
+
+#plot(popPhenos[[1]], popPhenosNoise[[1]])
+
+
+#myPhenos = unlist(popPhenosNoise)
+myPhenos = unlist(popPhenos)
+plot(myEig$vectors[,1], myPhenos[1:199], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50), rep(mycol[4], 50)), bty="n", xlab = "PC1", ylab ="Sim phenos", lwd=2)
+myl = lm(myPhenos[1:199]~ myEig$vectors[,1])
+abline(myl)
+
+
+plot(myEig$vectors[,2], myPhenos[1:199], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50), rep(mycol[4], 50)), bty="n", xlab = "PC1", ylab ="Sim phenos", lwd=2)
+myl = lm(myPhenos[1:199]~ myEig$vectors[,2])
+abline(myl)
+
+
+plot(myEig$vectors[,3], myPhenos[1:199], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50), rep(mycol[4], 50)), bty="n", xlab = "PC1", ylab ="Sim phenos",lwd=2)
+myl = lm(myPhenos[1:199]~ myEig$vectors[,3])
+abline(myl)
+
+plot(myEig$vectors[,4], myPhenos[1:199], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50), rep(mycol[4], 50)), bty="n", xlab = "PC1", ylab ="Sim phenos", lwd=2)
+myl = lm(myPhenos[1:199]~ myEig$vectors[,4])
+abline(myl)
 
 ```
 
-TODO: make y axis the phenotype
-beetas = matrix(c(rnorm(opt$loci/2),rep(0,opt$loci/2)), ncol=1, nrow=opt$loci) #half are 0, half are from a normal distribution
 
-if (opt$environmental_shift == TRUE){pop.phenos = myShift(pop.phenos)}
-
-#individual noise shifts
-#if (opt$noise == TRUE){pop.phenos = lapply(pop.phenos, function(x){jitter(x, factor=50)})}
-if (opt$noise == TRUE){
-pop.phenos = lapply(pop.phenos, function(x){x + rnorm(length(x), mean=0, sd=sd(x)/2 )})  
-}
-pop.phenos = getPopPhenos(pop.genos, beetas)
+Now to show how we're estimating Va with the lower pcs
 
 
+```{r}
+## estimate Va with the loci and allele freqs
+myPs =  colMeans(presentPops) #get allele freq across all pops (could do with anc pop too)
+myVaGeno = calcVa(myPs, beetas)
+myVaGeno
 
+myVaAnc = calcVa(ancPop, beetas)
+myVaAnc
+
+#estimate Va with all PCs
+ninds = npops*npop - 1
+myCs = sapply(1:ninds, function(x){
+  (myPhenos[1:ninds] %*% myEig$vectors[,x])/sqrt(myEig$values[x])
+}) #project traits onto PCs
+
+
+myVaAll = var0(myCs[1:198])/2
+myVaAll 
+
+#plot Va estimates
+myVaPC = sapply(myCs[1:198], var0)/2
+hist(myVaPC, col = mycol[4], border="white", main = "") ##this is the right distribution, right?
+
+plot(myVaPC, bty="n", lwd=2, col = mycol[4], xlab = 'PC', ylab = "Va from one PC")
+abline(h=myVaAll, col = mycol[3], lwd=2)
+summary(myVaPC)
+
+```
+
+So what does the final figure look like??
+
+```{r finalfigure, echo=T, eval=F}
+par(mfrow=c())
+
+```
