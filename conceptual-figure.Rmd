@@ -185,7 +185,6 @@ abline(myl)
 
 Now to show how we're estimating Va with the lower pcs
 
-
 ```{r}
 ## estimate Va with the loci and allele freqs
 myPs =  colMeans(presentPops) #get allele freq across all pops (could do with anc pop too)
@@ -215,6 +214,75 @@ summary(myVaPC)
 
 ```
 
+
+Do simulations
+```{r sims, eval=F}
+i=2
+
+doSim <- function(i){
+x1 <- runif(i) #getting a random number so there's a seed
+save(".Random.seed", file=paste("data/figure_sims/randomSeed.",i, sep=""))
+
+npops=3
+Faa = 0.15
+
+sigma = matrix(0,nrow=3, ncol=3)
+sigma[1:2,1:2] = matrix(Faa/2, nrow=2, ncol=2)
+diag(sigma) = Faa
+
+#simulate allele freqs in two pops at these loci
+nloci = 500
+ancPop = runif(nloci, min=0, max=1)
+presentPops1 = sapply(ancPop, function(x){mvrnorm(n=1, mu = rep(x,npops), x*(1-x)*sigma)})
+presentPops = apply(presentPops1, c(1,2), myBound) #deal with numbers greater or less than 0 (the outer bounds are sticky)
+
+#get the population genotypes
+npop = 50
+popGenos = lapply(1:npops, function(x) getPopGenos(x, presentPops, npop)) #a list of elements, each is a population
+
+#make a kinship matrix
+myG = rbind(popGenos[[1]], popGenos[[2]], popGenos[[3]])/2
+myK = make_k(myG)
+
+myEig = eigen(myK)
+
+beetas = matrix(c(rnorm(nloci)), ncol=1, nrow=nloci) 
+popPhenos = getPopPhenos(popGenos, beetas)
+
+nind = npops*npop - 1
+myPhenos = unlist(popPhenos) - mean(unlist(popPhenos))
+
+myPs =  colMeans(presentPops) #get allele freq across all pops (could do with anc 
+myVaGeno = calcVa(myPs, beetas)
+myVaAnc = calcVa(ancPop, beetas)
+
+#estimate Va with all PCs
+ninds = npops*npop - 1
+myCs = sapply(1:ninds, function(x){
+  (myPhenos[1:ninds] %*% myEig$vectors[,x])/sqrt(myEig$values[x])
+}) #project traits onto PCs
+
+
+myVaAll = var0(myCs[1:(nind-1)])/2
+myVaPC = sapply(myCs[1:(nind-1)], var0)/2
+
+return(list(vapc = myVaPC, vaanc = myVaAnc, vageno = myVaGeno, vaall = myVaAll))
+}
+
+vaSims = sapply(2:202, doSim)
+save(vaSims, file = "data/figure_sims/vaSimresults")
+```
+
+Look at sims
+```{r simslook}
+load('data/figure_sims/vaSimresults')
+
+#plot out the mean Va for each PC across all PCs, divided by what you'd get for total
+allVaPCs = rowMeans(sapply(1:200, function(x){vaSims[,x]$vapc/vaSims[,x]$vaall}))
+
+plot(allVaPCs)
+```
+
 So what does the final figure look like??
 
 ```{r finalfigure, echo=T, eval=F}
@@ -237,7 +305,7 @@ myl = lm(myPhenos[1:nind]~ myEig$vectors[,3])
 abline(myl, lwd=2, col = mycol[5])
 
 
-plot(myVaPC[1:100], bty="n", lwd=2, col = mycol[4], xlab = "PC", ylab = "Estimated Va")
+plot(allVaPCs, bty="n", lwd=2, col = mycol[4], xlab = "PC", ylab = "Estimated Va")
 
 dev.off()
 ```
