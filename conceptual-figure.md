@@ -55,8 +55,8 @@ presentPops = apply(presentPops1, c(1,2), myBound) #deal with numbers greater or
 npop = 50
 popGenos = lapply(1:npops, function(x) getPopGenos(x, presentPops, npop)) #a list of elements, each is a population
 
-#make a kinship matrix
-myG = rbind(popGenos[[1]], popGenos[[2]], popGenos[[3]])/2
+#make a kinship matrix with the last 400 sites
+myG = rbind(popGenos[[1]][,101:500], popGenos[[2]][,101:500], popGenos[[3]][,101:500])/2
 myK = make_k(myG)
 heatmap(myK)
 ```
@@ -79,7 +79,7 @@ plot(myEig$values, lwd=2, bty="n", col = mycol[6], xlab = "PC", ylab = "Eigenval
 #plot(myEig$vectors[,3], myEig$vectors[,4], col = c(rep(mycol[1], 50),rep(mycol[2], 50), rep(mycol[3], 50), rep(mycol[4], 50)), bty='n', xlab= 'PC3', ylab = 'PC4', lwd=2, xlim = c(-.2, .2))
 #legend('topright', c('pop1','pop2', 'pop3','pop4'), bty="n", pch=1, pt.lwd=2, col = mycol)
 
-beetas = matrix(c(rnorm(nloci)), ncol=1, nrow=nloci) 
+beetas = matrix(c(rnorm(100), rep(0, 400)), ncol=1, nrow=nloci) 
 popPhenos = getPopPhenos(popGenos, beetas)
 #individual noise shifts
 #popPhenosNoise = lapply(popPhenos, function(x){x + rnorm(length(x), mean=0, sd=sd(x)/2 )})
@@ -124,7 +124,7 @@ myVaGeno
 ```
 
 ```
-## [1] 158.4759
+## [1] 29.88397
 ```
 
 ```r
@@ -133,7 +133,7 @@ myVaAnc
 ```
 
 ```
-## [1] 170.628
+## [1] 32.4954
 ```
 
 ```r
@@ -149,7 +149,7 @@ myVaAll
 ```
 
 ```
-## [1] 169.7287
+## [1] 47.94663
 ```
 
 ```r
@@ -172,8 +172,8 @@ summary(myVaPC)
 ```
 
 ```
-##      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-##    0.0016   12.7532  105.6428  169.7287  223.4823 1334.2860
+##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+##   0.0014   3.9911  17.2042  47.9466  60.0863 544.3246
 ```
 
 
@@ -195,6 +195,7 @@ diag(sigma) = Faa
 
 #simulate allele freqs in two pops at these loci
 nloci = 500
+nlocitrait = 100
 ancPop = runif(nloci, min=0, max=1)
 presentPops1 = sapply(ancPop, function(x){mvrnorm(n=1, mu = rep(x,npops), x*(1-x)*sigma)})
 presentPops = apply(presentPops1, c(1,2), myBound) #deal with numbers greater or less than 0 (the outer bounds are sticky)
@@ -204,12 +205,12 @@ npop = 50
 popGenos = lapply(1:npops, function(x) getPopGenos(x, presentPops, npop)) #a list of elements, each is a population
 
 #make a kinship matrix
-myG = rbind(popGenos[[1]], popGenos[[2]], popGenos[[3]])/2
+myG = rbind(popGenos[[1]][,(nlocitrait+1):nloci], popGenos[[2]][,(nlocitrait+1):nloci], popGenos[[3]][,(nlocitrait+1):nloci])/2
 myK = make_k(myG)
 
 myEig = eigen(myK)
 
-beetas = matrix(c(rnorm(nloci)), ncol=1, nrow=nloci) 
+beetas = matrix(c(rnorm(nlocitrait), rep(0, nloci-nlocitrait)), ncol=1, nrow=nloci) 
 popPhenos = getPopPhenos(popGenos, beetas)
 
 nind = npops*npop - 1
