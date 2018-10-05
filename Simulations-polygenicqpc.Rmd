@@ -76,6 +76,48 @@ getSigSnps <- function(myI, sitePrefix = 'data/simFiles/ldfiltered.'){
 sapply(1:200, getSigSnps)
 ```
 
+How many of simulated loci end up signficant in the GWAS analysis? How many of GWAS hits are false positive? how accurate are the effect size estimates?
+```{r gwasqs, eval=F}
+myI = 5
+
+gwasStats <- function(myI){
+#read in the GWAS hits
+gemma.out = processGemmaOutput(paste('../polygenic-maize/data/simFiles/gemmaout.',myI,'.assoc.txt',sep=""))
+sig.sites = dplyr::filter(gemma.out, p_lrt < 0.005)
+
+#read in the sim sites
+causal.sites = read.table(paste('data/simFiles/causalSites.', myI, sep=""), header=T, stringsAsFactors = F)
+
+#how many of the sig ones overlap?
+overlap.sites = dplyr::inner_join(sig.sites, causal.sites, by=c('rs'='locus'))
+true.pos = nrow(overlap.sites)
+false.pos = nrow(sig.sites) - nrow(overlap.sites)
+false.neg = nrow(causal.sites) - true.pos
+true.neg = nrow(gemma.out) - true.pos - false.pos - false.neg
+
+#how correlated are simulate effect sizes with real effect sizes?
+set.seed(myI)
+beetas = matrix(rnorm(500), ncol=1, nrow=500) #simulate effect sizes
+causal.beeta = data.frame(rs = causal.sites$locus, beeta = beetas, stringsAsFactors = F)
+
+effect.compare = dplyr::left_join(causal.beeta, gemma.out, by = 'rs')
+mycor = cor.test(effect.compare$beeta, effect.compare$beta)
+
+return(c(true.pos, false.pos, true.neg, false.neg, mycor$estimate, mycor$p.value))}
+
+myGwasStats = sapply(1:200, gwasStats)
+save(myGwasStats, file = 'data/gwasstats_ames.rda')
+
+
+```
+
+Look at the sims
+```{r}
+load('data/gwasstats_ames.rda')
+gwasStatsdf = data.frame(t(myGwasStats))
+names(gwasStatsdf) = c('truepos','falsepos','trueneg','falseneg','cor','pval')
+summary(gwasStatsdf)
+```
 
 ### European lines
 And on the European sims
@@ -150,6 +192,51 @@ sapply(201:1000, getSigSnpsEuro)
 #system("rsync -avz -e 'ssh -p 2022' farm:/home/emjo/euro-maize/data/simFiles/sigSnps* simFiles/")
 
 
+```
+
+
+How many of simulated loci end up signficant in the GWAS analysis? How many of GWAS hits are false positive? how accurate are the effect size estimates?
+```{r gwasqs, eval=F}
+myI = 5
+
+gwasStatsEuro <- function(myI){
+#read in the GWAS hits
+gemma.out = read.table(paste('../polygenic-maize/data/simFiles/gemmaout.euro.',myI,'.assoc.txt',sep=""), header=T, stringsAsFactors = F)
+gemma.out$locus = sapply(gemma.out$rs, function(x){paste('s',strsplit(x, ':')[[1]][1],'_',strsplit(x,':')[[1]][2], sep='')})
+sig.sites = dplyr::filter(gemma.out, p_lrt < 0.005)
+
+#read in the sim sites
+causal.sites = read.table(paste('data/simFiles/causalSites.euro.', myI, sep=""), header=T, stringsAsFactors = F)
+# 
+#how many of the sig ones overlap?
+overlap.sites = dplyr::inner_join(sig.sites, causal.sites, by='locus')
+true.pos = nrow(overlap.sites)
+false.pos = nrow(sig.sites) - nrow(overlap.sites)
+false.neg = nrow(causal.sites) - true.pos
+true.neg = nrow(gemma.out) - true.pos - false.pos - false.neg
+
+#how correlated are simulate effect sizes with real effect sizes?
+set.seed(myI)
+beetas = matrix(rnorm(500), ncol=1, nrow=500) #simulate effect sizes
+causal.beeta = data.frame(locus = causal.sites$locus, beeta = beetas, stringsAsFactors = F)
+
+effect.compare = dplyr::left_join(causal.beeta, gemma.out, by = 'locus')
+mycor = cor.test(effect.compare$beeta, effect.compare$beta)
+
+return(c(true.pos, false.pos, true.neg, false.neg, mycor$estimate, mycor$p.value))}
+
+myGwasStatsEuro = sapply(1:200, gwasStatsEuro)
+save(myGwasStatsEuro, file = 'data/gwasstats_euro.rda')
+
+
+```
+
+Look at the sims
+```{r}
+load('data/gwasstats_ames.rda')
+gwasStatsdf = data.frame(t(myGwasStats))
+names(gwasStatsdf) = c('truepos','falsepos','trueneg','falseneg','cor','pval')
+summary(gwasStatsdf)
 ```
 
 
