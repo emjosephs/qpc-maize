@@ -67,6 +67,65 @@ getSigSnps <- function(myI, sitePrefix = 'data/simFiles/ldfiltered.'){
 sapply(1:200, getSigSnps)
 ```
 
+How many of simulated loci end up signficant in the GWAS analysis? How many of GWAS hits are false positive? how accurate are the effect size estimates?
+
+```r
+myI = 5
+
+gwasStats <- function(myI){
+#read in the GWAS hits
+gemma.out = processGemmaOutput(paste('../polygenic-maize/data/simFiles/gemmaout.',myI,'.assoc.txt',sep=""))
+sig.sites = dplyr::filter(gemma.out, p_lrt < 0.005)
+
+#read in the sim sites
+causal.sites = read.table(paste('data/simFiles/causalSites.', myI, sep=""), header=T, stringsAsFactors = F)
+
+#how many of the sig ones overlap?
+overlap.sites = dplyr::inner_join(sig.sites, causal.sites, by=c('rs'='locus'))
+true.pos = nrow(overlap.sites)
+false.pos = nrow(sig.sites) - nrow(overlap.sites)
+false.neg = nrow(causal.sites) - true.pos
+true.neg = nrow(gemma.out) - true.pos - false.pos - false.neg
+
+#how correlated are simulate effect sizes with real effect sizes?
+set.seed(myI)
+beetas = matrix(rnorm(500), ncol=1, nrow=500) #simulate effect sizes
+causal.beeta = data.frame(rs = causal.sites$locus, beeta = beetas, stringsAsFactors = F)
+
+effect.compare = dplyr::left_join(causal.beeta, gemma.out, by = 'rs')
+mycor = cor.test(effect.compare$beeta, effect.compare$beta)
+
+return(c(true.pos, false.pos, true.neg, false.neg, mycor$estimate, mycor$p.value))}
+
+myGwasStats = sapply(1:200, gwasStats)
+save(myGwasStats, file = 'data/gwasstats_ames.rda')
+```
+
+Look at the sims
+
+```r
+load('data/gwasstats_ames.rda')
+gwasStatsdf = data.frame(t(myGwasStats))
+names(gwasStatsdf) = c('truepos','falsepos','trueneg','falseneg','cor','pval')
+summary(gwasStatsdf)
+```
+
+```
+##     truepos         falsepos         trueneg          falseneg    
+##  Min.   : 5.00   Min.   : 700.0   Min.   :171765   Min.   :478.0  
+##  1st Qu.:11.00   1st Qu.: 865.0   1st Qu.:171990   1st Qu.:484.0  
+##  Median :13.00   Median : 920.0   Median :172048   Median :487.0  
+##  Mean   :13.19   Mean   : 920.3   Mean   :172048   Mean   :486.8  
+##  3rd Qu.:16.00   3rd Qu.: 977.5   3rd Qu.:172103   3rd Qu.:489.0  
+##  Max.   :22.00   Max.   :1203.0   Max.   :172268   Max.   :495.0  
+##       cor              pval          
+##  Min.   :0.3764   Min.   :0.000e+00  
+##  1st Qu.:0.4497   1st Qu.:0.000e+00  
+##  Median :0.4700   Median :0.000e+00  
+##  Mean   :0.4672   Mean   :5.280e-20  
+##  3rd Qu.:0.4862   3rd Qu.:0.000e+00  
+##  Max.   :0.5608   Max.   :9.731e-18
+```
 
 ### European lines
 And on the European sims
@@ -140,6 +199,68 @@ sapply(1:200, getSigSnpsEuro)
 sapply(201:1000, getSigSnpsEuro)
 
 #system("rsync -avz -e 'ssh -p 2022' farm:/home/emjo/euro-maize/data/simFiles/sigSnps* simFiles/")
+```
+
+
+How many of simulated loci end up signficant in the GWAS analysis? How many of GWAS hits are false positive? how accurate are the effect size estimates?
+
+```r
+myI = 5
+
+gwasStatsEuro <- function(myI){
+#read in the GWAS hits
+gemma.out = read.table(paste('../polygenic-maize/data/simFiles/gemmaout.euro.',myI,'.assoc.txt',sep=""), header=T, stringsAsFactors = F)
+gemma.out$locus = sapply(gemma.out$rs, function(x){paste('s',strsplit(x, ':')[[1]][1],'_',strsplit(x,':')[[1]][2], sep='')})
+sig.sites = dplyr::filter(gemma.out, p_lrt < 0.005)
+
+#read in the sim sites
+causal.sites = read.table(paste('data/simFiles/causalSites.euro.', myI, sep=""), header=T, stringsAsFactors = F)
+# 
+#how many of the sig ones overlap?
+overlap.sites = dplyr::inner_join(sig.sites, causal.sites, by='locus')
+true.pos = nrow(overlap.sites)
+false.pos = nrow(sig.sites) - nrow(overlap.sites)
+false.neg = nrow(causal.sites) - true.pos
+true.neg = nrow(gemma.out) - true.pos - false.pos - false.neg
+
+#how correlated are simulate effect sizes with real effect sizes?
+set.seed(myI)
+beetas = matrix(rnorm(500), ncol=1, nrow=500) #simulate effect sizes
+causal.beeta = data.frame(locus = causal.sites$locus, beeta = beetas, stringsAsFactors = F)
+
+effect.compare = dplyr::left_join(causal.beeta, gemma.out, by = 'locus')
+mycor = cor.test(effect.compare$beeta, effect.compare$beta)
+
+return(c(true.pos, false.pos, true.neg, false.neg, mycor$estimate, mycor$p.value))}
+
+myGwasStatsEuro = sapply(1:200, gwasStatsEuro)
+save(myGwasStatsEuro, file = 'data/gwasstats_euro.rda')
+```
+
+Look at the sims
+
+```r
+load('data/gwasstats_euro.rda')
+gwasStatsdf = data.frame(t(myGwasStatsEuro))
+names(gwasStatsdf) = c('truepos','falsepos','trueneg','falseneg','cor','pval')
+summary(gwasStatsdf)
+```
+
+```
+##     truepos          falsepos       trueneg          falseneg    
+##  Min.   : 3.000   Min.   :1893   Min.   :417362   Min.   :480.0  
+##  1st Qu.: 7.750   1st Qu.:2179   1st Qu.:418732   1st Qu.:489.0  
+##  Median : 9.000   Median :2262   Median :418804   Median :491.0  
+##  Mean   : 9.315   Mean   :2273   Mean   :418793   Mean   :490.7  
+##  3rd Qu.:11.000   3rd Qu.:2334   3rd Qu.:418887   3rd Qu.:492.2  
+##  Max.   :20.000   Max.   :3704   Max.   :419173   Max.   :497.0  
+##       cor               pval          
+##  Min.   :0.07046   Min.   :0.000e+00  
+##  1st Qu.:0.20816   1st Qu.:1.000e-08  
+##  Median :0.24754   Median :4.200e-07  
+##  Mean   :0.24638   Mean   :2.021e-03  
+##  3rd Qu.:0.28543   3rd Qu.:2.584e-05  
+##  Max.   :0.40151   Max.   :1.524e-01
 ```
 
 

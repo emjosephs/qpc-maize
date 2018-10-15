@@ -196,7 +196,7 @@ sapply(201:1000, getSigSnpsEuro)
 
 
 How many of simulated loci end up signficant in the GWAS analysis? How many of GWAS hits are false positive? how accurate are the effect size estimates?
-```{r gwasqs, eval=F}
+```{r gwasqs2, eval=F}
 myI = 5
 
 gwasStatsEuro <- function(myI){
