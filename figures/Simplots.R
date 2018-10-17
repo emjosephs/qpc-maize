@@ -15,14 +15,46 @@ cap = sapply(camesOut, function(x) {x$pprime}) #matrix, rows are pvals, columns 
 nep = sapply(nceuroOut, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
 cep = sapply(ceuroOut, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
 
-
-
 mycol = lacroix_palette('Lime')
 prop05 <- function(pvals){apply(pvals, 1, function(x){sum(x< 0.05)/length(x)})}
 
+#make the polygenic sore plot
+load('../data/simFiles/simTraitsResults.rda')
+load('../data/euro.282.E.rda')
+myM=906
+euro282 = myF
+sigma11 = as.matrix(euro282[1:myM,1:myM])
+myEig = eigen(sigma11)
 
-postscript("Simplot.eps",height=8,width=10,paper="special",horizontal=FALSE,colormodel="cymk")
-par(xpd=F, mfrow = c(2,1), mar=c(5,5,2,2))
+#get all cors btw pc1 and sim trait
+simcors = sapply(1:200, function(x){
+  simTraits = myTraits[1,x]$simT[1:906]
+  simTraits = simTraits - mean(simTraits)
+  tailCutoff = round(.9*length(myEig$values))
+  myCm = (simTraits %*% myEig$vectors)/sqrt(myEig$values)
+  myVa = var0(myCm[(tailCutoff-50:tailCutoff)])
+  simcor = lm(simTraits/sqrt(myVa) ~ myEig$vectors[,1])
+  return(simcor)
+})
+
+gwascors = sapply(1:200, function(x){
+  gwasTraits = myTraits[2,x]$gwasT[1:906]
+  gwasTraits = gwasTraits- mean(gwasTraits)
+  tailCutoff = round(.9*length(myEig$values))
+  myCm = (gwasTraits %*% myEig$vectors)/sqrt(myEig$values)
+  myVa = var0(myCm[(tailCutoff-50:tailCutoff)])
+   gwascor = lm(gwasTraits/sqrt(myVa) ~ myEig$vectors[,1])
+  return(gwascor)
+})
+
+myCm1Gwas = ((myTraits[2,1]$gwasT[1:906] - mean(myTraits[2,1]$gwasT[1:906])) %*% myEig$vectors)/sqrt(myEig$values)
+myGwasTrait1 = (myTraits[2,1]$gwasT[1:906] - mean(myTraits[2,1]$gwasT[1:906]))/sqrt(var0(myCm1Gwas[(765:815)]))
+myCm1Sim = ((myTraits[1,1]$simT[1:906] - mean(myTraits[1,1]$simT[1:906])) %*% myEig$vectors)/sqrt(myEig$values)
+mySimTrait1 = (myTraits[1,1]$simT[1:906] - mean(myTraits[1,1]$simT[1:906]))/sqrt(var0(myCm1Sim[(765:815)]))
+
+
+postscript("Simplot.eps",height=8,width=8,paper="special",horizontal=FALSE,colormodel="cymk")
+par(mfrow = c(2,2), mar=c(5,5,2,2))
 
 
 plot(-1,-1, ylim = c(0,1), xlim = c(1,30), bty="n", xlab = "PC", ylab = "Proportion significant tests", xaxt="n", yaxt = "n")
@@ -43,6 +75,19 @@ axis(2, las=2)
 legend('topleft', c('Europe Non-conditional test', 'Europe Conditional test'), fill = mycol[c(2,5)], border="white", bty="n")
 mtext('B', side=3, adj=0, cex=2, line=0)
 
+plot(myEig$vectors[,1],myGwasTrait1, bty="n", col = mycol[3], lwd=1, ylim = c(-4,4),
+     xlab = "PC 1", ylab = "Trait", yaxt="n", xlim = c(-0.06,0.06))
+points(myEig$vectors[,1], mySimTrait1, col = mycol[6], lwd=1)
+axis(2, las=2)
+mtext('C', side=3, adj=0, cex=2, line=0)
+legend('bottomleft', c('Simulated traits','Ascertained traits'), bty="n", pch=1,pt.lwd=2, col = mycol[c(6,3)])
+
+plot(-1,-1, ylim = c(-5,5), xlim = c(-0.06,0.06), bty="n", xlab = "PC 1", yla = "Trait", col = mycol[1], yaxt="n")
+test = sapply(1:200, function(x) {abline(gwascors[1,x], col = mycol[3], lwd=1)})
+test = sapply(1:200, function(x) {abline(simcors[1,x], col = mycol[6], lwd=1)})
+axis(2, las=2)
+legend('topright',c('Simulated traits','Ascertained traits'), lwd = 2, col = mycol[c(6,3)], bty="n")
+mtext('D', side=3, adj=0, cex=2, line=0)
 
 dev.off()
 
