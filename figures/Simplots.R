@@ -46,4 +46,33 @@ mtext('B', side=3, adj=0, cex=2, line=0)
 
 dev.off()
 
+
+postscript("Simplot50.eps",height=8,width=10,paper="special",horizontal=FALSE,colormodel="cymk")
+par(xpd=F, mfrow = c(2,1), mar=c(5,5,2,2))
+
 ### Supp figure with the 50 snp sims
+load('../data/simFiles/qxpc_nc_ames50_200.rda') #ncamesOut
+load('../data/simFiles/qxpc_nc_euro50_200.rda') #nceuroOut
+load('../data/simFiles/qxpc_euro50_200.rda') #ceuroOut
+load('../data/simFiles/qxpc_ames50_200.rda') #camesOut
+
+nap50 = sapply(ncamesOut50, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
+cap50 = sapply(qxpcames_sims50, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
+nep50 = sapply(nceuroOut50, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
+cep50 = sapply(euroOut50, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
+
+plot(-1,-1, ylim = c(0,1), xlim = c(1,30), bty="n", xlab = "PC", ylab = "Proportion significant tests", xaxt="n", yaxt = "n")
+abline(h=0.05, col = mycol[6], lwd=2)
+test = barplot(rbind(prop05(nap50)[1:10], prop05(cap50)[1:10]), beside=T, border=NA, col = mycol[c(2,5)], ylim=c(0,1), add=T)
+axis(1, at = test[1,]+ 0.5, lab = 1:10, cex=1.5)
+legend('topleft', c('Ames Non-conditional test', 'Ames Conditional test'), fill = mycol[c(2,5)], border="white", bty="n")
+mtext('A', side=3, adj=0, cex=2, line=0)
+
+plot(-1,-1, ylim = c(0,1), xlim = c(1,30), bty="n", xlab = "PC", ylab = "Proportion significant tests", xaxt="n", yaxt = "n")
+abline(h=0.05, col = mycol[6], lwd=2)
+test = barplot(rbind(prop05(nep50)[1:10], prop05(cep50)[1:10]), beside=T, border=NA, col = mycol[c(2,5)], ylim=c(0,1), add=T)
+axis(1, at = test[1,]+ 0.5, lab = 1:10, cex=1.5)
+legend('topleft', c('Europe Non-conditional test', 'Europe Conditional test'), fill = mycol[c(2,5)], border="white", bty="n")
+mtext('B', side=3, adj=0, cex=2, line=0)
+
+dev.off()
