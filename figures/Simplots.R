@@ -45,3 +45,5 @@ mtext('B', side=3, adj=0, cex=2, line=0)
 
 
 dev.off()
+
+### Supp figure with the 50 snp sims

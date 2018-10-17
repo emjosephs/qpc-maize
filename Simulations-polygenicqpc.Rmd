@@ -334,7 +334,7 @@ save(ceuroOut, file='data/simFiles/qpc_euro_200')
 ## Look at the results
 
 ```{r gwasnocond}
-
+### 500 SNPs
 load('data/simFiles/qxpc_nonconditional_ames_200') #ncamesOut
 load('data/simFiles/qxpc_nonconditional_euro_200') #nceuroOut
 load('data/simFiles/qpc_euro_200') #ceuroOut
@@ -383,6 +383,29 @@ test = barplot(rbind(prop05(nep)[1:10], prop05(cep)[1:10]), beside=T, border=NA,
 axis(1, at = test[1,]+ 0.5, lab = 1:10, cex=1.5)
 legend('topleft', c('Europe Non-conditional test', 'Europe Conditional test'), fill = mycol[c(4,6)], border="white", bty="n")
 
+
+### 50 SNPs
+load('data/simFiles/qxpc_nc_ames50_200.rda') #ncamesOut
+load('data/simFiles/qxpc_nc_euro50_200.rda') #nceuroOut
+load('data/simFiles/qxpc_euro50_200.rda') #ceuroOut
+load('data/simFiles/qxpc_ames50_200.rda') #camesOut
+
+nap50 = sapply(ncamesOut50, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
+cap50 = sapply(qxpcames_sims50, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
+nep50 = sapply(nceuroOut50, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
+cep50 = sapply(euroOut50, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
+
+plot(-1,-1, ylim = c(0,1), xlim = c(1,30), bty="n", xlab = "PC", ylab = "Proportion significant tests", xaxt="n", yaxt = "n")
+abline(h=0.05, col = mycol[6], lwd=2)
+test = barplot(rbind(prop05(nap50)[1:10], prop05(cap50)[1:10]), beside=T, border=NA, col = mycol[c(2,5)], ylim=c(0,1), add=T)
+axis(1, at = test[1,]+ 0.5, lab = 1:10, cex=1.5)
+legend('topleft', c('Ames Non-conditional test 50', 'Ames Conditional test 50'), fill = mycol[c(2,5)], border="white", bty="n")
+
+plot(-1,-1, ylim = c(0,1), xlim = c(1,30), bty="n", xlab = "PC", ylab = "Proportion significant tests", xaxt="n", yaxt = "n")
+abline(h=0.05, col = mycol[6], lwd=2)
+test = barplot(rbind(prop05(nep50)[1:10], prop05(cep50)[1:10]), beside=T, border=NA, col = mycol[c(4,6)], ylim=c(0,1), add=T)
+axis(1, at = test[1,]+ 0.5, lab = 1:10, cex=1.5)
+legend('topleft', c('Europe Non-conditional test', 'Europe Conditional test'), fill = mycol[c(4,6)], border="white", bty="n")
 
 
 ```
