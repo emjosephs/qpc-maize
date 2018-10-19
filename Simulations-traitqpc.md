@@ -107,3 +107,85 @@ legend('topleft', c('Ve=0','Ve=Va/10','Ve=Va/2'), col = mycol[c(1,3,5)], pch=1, 
 
 ![](Simulations-traitqpc_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
 
+Doing simulations where we incorporate actual loci
+
+
+```r
+## simulate allele frequencies in each of 240 pops. nloci = 1050, 50 of these are used to make the trait, the rest to estimate K
+
+mysims = sapply(1:200, function(i){
+set.seed(i)
+nloci = 10050
+ancPop = runif(nloci, min=0, max=1) #ancestral allele frequenices
+presentPops1 = sapply(ancPop, function(x){mvrnorm(n=1, mu = rep(x,239), x*(1-x)*myK)})
+presentPops = apply(presentPops1, c(1,2), myBound) #deal with numbers greater or less than 0 (the outer bounds are sticky)
+popGenos = sapply(1:239, function(x) getPopGenos(x, presentPops, 1)) # matrix where each row is a SNP and each column is an individual
+myG = t(popGenos[51:10050,])/2#snps used to make K matrix
+myKsim = make_k_E(myG) #make a new pop matrix
+myEigsim = eigen(myK)
+#plot(1:239,myEigsim$values[1:239])
+beetas = matrix(c(rnorm(50), rep(0, 10000)), ncol=1, nrow=nloci) 
+popPhenos = apply(popGenos, 2, function(x){x %*% beetas})
+myQpcneutral = calcQpc(popPhenos, myEigsim$vectors, myEigsim$values)
+#plot(myEigsim$vectors[,1], popPhenos, bty="n", xlab = "PC1", ylab ="Sim phenos"
+return(list(phenos = popPhenos, kSim = myKsim, myCms = myQpcneutral$cm))
+})
+
+save(mysims, file = "data/simFiles/qpc_loci_sims.rda")
+```
+
+
+Look at the simulations
+
+```r
+mycol = lacroix_palette('Mango')
+load('data/simFiles/qpc_loci_sims.rda')
+#mysims is a matrix, each column is a sim. first row is phenotypes (in 1 item list), second row is a one item list with the kinship matrix in it, third row is a list of the cm values.
+
+#what do CM values look like across PCs
+myCms = sapply(1:200, function(x){mysims[3,x][[1]]}) #rows are PCs, cols are simulations
+myCmMeans = sapply(1:239, function(x){mean(myCms[x,]^2)})
+
+plot(-100,-100, xlim = c(0,240), ylim = c(0,max(myCms)^2), bty="n", xlab = "PC", ylab = "Cm^2")
+test = sapply(1:200, function(x){points(myCms[,x]^2, col = mycol[3])})
+abline(v = 0.9*239, lwd=2)
+points(1:239,myCmMeans, col = mycol[6], pch=16)
+```
+
+![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
+```r
+## do I need to figure out actual Va for this to work? Would maybe need to redo simulations?
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

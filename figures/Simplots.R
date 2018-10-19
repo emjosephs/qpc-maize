@@ -91,6 +91,15 @@ mtext('D', side=3, adj=0, cex=2, line=0)
 
 dev.off()
 
+##how often is the gwas slope > the sim slope?
+#gwasGreater = sapply(1:200, function(i){
+#gwasslope = abs(gwascors[1,i][[1]][2])
+#simslope = abs(simcors[1,i][[1]][2])
+#x=0
+#if(gwasslope > simslope){x = 1}
+#return(x)
+#})
+#sum(gwasGreater)
 
 postscript("Simplot50.eps",height=8,width=10,paper="special",horizontal=FALSE,colormodel="cymk")
 par(xpd=F, mfrow = c(2,1), mar=c(5,5,2,2))
