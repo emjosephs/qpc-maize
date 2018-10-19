@@ -122,7 +122,7 @@ presentPops = apply(presentPops1, c(1,2), myBound) #deal with numbers greater or
 popGenos = sapply(1:239, function(x) getPopGenos(x, presentPops, 1)) # matrix where each row is a SNP and each column is an individual
 myG = t(popGenos[51:10050,])/2#snps used to make K matrix
 myKsim = make_k_E(myG) #make a new pop matrix
-myEigsim = eigen(myK)
+myEigsim = eigen(myKsim)
 #plot(1:239,myEigsim$values[1:239])
 beetas = matrix(c(rnorm(50), rep(0, 10000)), ncol=1, nrow=nloci) 
 popPhenos = apply(popGenos, 2, function(x){x %*% beetas})
@@ -140,23 +140,35 @@ Look at the simulations
 ```r
 mycol = lacroix_palette('Mango')
 load('data/simFiles/qpc_loci_sims.rda')
-#mysims is a matrix, each column is a sim. first row is phenotypes (in 1 item list), second row is a one item list with the kinship matrix in it, third row is a list of the cm values.
+#mysims is a matrix, each column is a sim. first row is phenotypes (in 1 item list), second row is a one item list with the kinship matrix in it, third row is a list of the cm values. 
+
+#TEMP -- I messed up calculation of myEigsim, so need to recalculate the Cms
+fixedSims = sapply(1:200, function(i){
+  calcQpc(myU = eigen(mysims[2,i][[1]])$vectors, myLambdas = eigen(mysims[2,i][[1]])$values, myPCcutoff=0.3, myZ = mysims[1,i][[1]])})
 
 #what do CM values look like across PCs
-myCms = sapply(1:200, function(x){mysims[3,x][[1]]}) #rows are PCs, cols are simulations
-myCmMeans = sapply(1:239, function(x){mean(myCms[x,]^2)})
+#myCms = sapply(1:200, function(x){mysims[3,x][[1]]}) #rows are PCs, cols are simulations
+myCms = sapply(1:200, function(x){fixedSims[1,x][[1]]}) #rows are PCs, cols are simulations
+myCmMeans = sapply(1:238, function(x){mean(myCms[x,]^2)})
 
 plot(-100,-100, xlim = c(0,240), ylim = c(0,max(myCms)^2), bty="n", xlab = "PC", ylab = "Cm^2")
-test = sapply(1:200, function(x){points(myCms[,x]^2, col = mycol[3])})
+test = sapply(1:200, function(x){points(1:238,myCms[,x]^2, col = mycol[3])})
 abline(v = 0.9*239, lwd=2)
-points(1:239,myCmMeans, col = mycol[6], pch=16)
+points(1:238,myCmMeans, col = mycol[6], pch=16)
 ```
 
 ![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
 
 ```r
 ## do I need to figure out actual Va for this to work? Would maybe need to redo simulations?
+
+#how often are we detecting selection using our standard parameters
+myps = sapply(1:200, function(x){fixedSims[3,x][[1]]})
+plot(-100,-100, xlim = c(0,40), ylim=c(0, -log10(min(unlist(myps)))*1.1), bty="n", xlab = "PC", ylab = "-log10 p")
+test = lapply(myps, function(x){points(-log10(x))})
 ```
+
+![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-2.png)<!-- -->
 
 
 

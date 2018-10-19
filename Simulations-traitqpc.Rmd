@@ -163,17 +163,17 @@ myCms = sapply(1:200, function(x){fixedSims[1,x][[1]]}) #rows are PCs, cols are 
 myCmMeans = sapply(1:238, function(x){mean(myCms[x,]^2)})
 
 plot(-100,-100, xlim = c(0,240), ylim = c(0,max(myCms)^2), bty="n", xlab = "PC", ylab = "Cm^2")
-test = sapply(1:200, function(x){points(myCms[,x]^2, col = mycol[3])})
+test = sapply(1:200, function(x){points(1:238,myCms[,x]^2, col = mycol[3])})
 abline(v = 0.9*239, lwd=2)
 points(1:238,myCmMeans, col = mycol[6], pch=16)
+
 
 ## do I need to figure out actual Va for this to work? Would maybe need to redo simulations?
 
 #how often are we detecting selection using our standard parameters
-pcmax = 22
-
-
-
+myps = sapply(1:200, function(x){fixedSims[3,x][[1]]})
+plot(-100,-100, xlim = c(0,40), ylim=c(0, -log10(min(unlist(myps)))*1.1), bty="n", xlab = "PC", ylab = "-log10 p")
+test = lapply(myps, function(x){points(-log10(x))})
 
 ```
 
