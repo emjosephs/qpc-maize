@@ -1,6 +1,6 @@
 
 library(MASS)
-library(quaint)
+library(qpctools)
 library(LaCroixColoR)
 
 myBound = function(x){

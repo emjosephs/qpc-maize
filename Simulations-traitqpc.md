@@ -141,15 +141,19 @@ Look at the simulations
 mycol = lacroix_palette('Mango')
 load('data/simFiles/qpc_loci_sims.rda')
 #mysims is a matrix, each column is a sim. first row is phenotypes (in 1 item list), second row is a one item list with the kinship matrix in it, third row is a list of the cm values. 
-
-#TEMP -- I messed up calculation of myEigsim, so need to recalculate the Cms
-fixedSims = sapply(1:200, function(i){
-  calcQpc(myU = eigen(mysims[2,i][[1]])$vectors, myLambdas = eigen(mysims[2,i][[1]])$values, myPCcutoff=0.3, myZ = mysims[1,i][[1]])})
-
 #what do CM values look like across PCs
-#myCms = sapply(1:200, function(x){mysims[3,x][[1]]}) #rows are PCs, cols are simulations
-myCms = sapply(1:200, function(x){fixedSims[1,x][[1]]}) #rows are PCs, cols are simulations
+myCms = sapply(1:200, function(x){mysims[3,x][[1]]}) #rows are PCs, cols are simulations
 myCmMeans = sapply(1:238, function(x){mean(myCms[x,]^2)})
+
+#what is Va going to be??
+myVas = sapply(1:200, function(x){calcVa(runif(50, min=0, max=1), rnorm(50))})
+hist(myVas)
+```
+
+![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
+```r
+## so Cm~N(0,2Va), so cm^2 ~ 2Va
 
 plot(-100,-100, xlim = c(0,240), ylim = c(0,max(myCms)^2), bty="n", xlab = "PC", ylab = "Cm^2")
 test = sapply(1:200, function(x){points(1:238,myCms[,x]^2, col = mycol[3])})
@@ -157,18 +161,48 @@ abline(v = 0.9*239, lwd=2)
 points(1:238,myCmMeans, col = mycol[6], pch=16)
 ```
 
-![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-2.png)<!-- -->
 
 ```r
-## do I need to figure out actual Va for this to work? Would maybe need to redo simulations?
-
-#how often are we detecting selection using our standard parameters
-myps = sapply(1:200, function(x){fixedSims[3,x][[1]]})
-plot(-100,-100, xlim = c(0,40), ylim=c(0, -log10(min(unlist(myps)))*1.1), bty="n", xlab = "PC", ylab = "-log10 p")
-test = lapply(myps, function(x){points(-log10(x))})
+plot(1:238, myCmMeans, bty="n", xlab = "PC", ylab = "CM^2 means")
+myl = lm(myCmMeans ~ c(1:238))
+abline(myl, col = mycol[2], lwd=3)
+abline(h = mean(myVas)*2, lwd=3, col = mycol[4])
 ```
 
-![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-2.png)<!-- -->
+![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-3.png)<!-- -->
+
+```r
+summary(myl)
+```
+
+```
+## 
+## Call:
+## lm(formula = myCmMeans ~ c(1:238))
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -13.7510  -2.8893   0.0642   2.5992  10.2340 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 32.394724   0.533909   60.67   <2e-16 ***
+## c(1:238)     0.051151   0.003873   13.21   <2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 4.105 on 236 degrees of freedom
+## Multiple R-squared:  0.4249,	Adjusted R-squared:  0.4225 
+## F-statistic: 174.4 on 1 and 236 DF,  p-value: < 2.2e-16
+```
+
+```r
+#how often are we detecting selection using our standard parameters
+#myps = sapply(1:200, function(x){mySims[3,x][[1]]})
+#plot(-100,-100, xlim = c(0,40), ylim=c(0, -log10(min(unlist(myps)))*1.1), bty="n", xlab = "PC", ylab = "-log10 p")
+#test = lapply(myps, function(x){points(-log10(x))})
+```
 
 
 

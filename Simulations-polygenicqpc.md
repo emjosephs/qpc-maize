@@ -72,10 +72,10 @@ How many of simulated loci end up signficant in the GWAS analysis? How many of G
 ```r
 myI = 5
 
-gwasStats <- function(myI, gwasPrefix = '../polygenic-maize/data/simFiles/gemmaout.', causalN = 500){
+gwasStats <- function(myI, gwasPrefix = '../polygenic-maize/data/simFiles/gemmaout.', causalN = 500, pcutoff = 0.005){
 #read in the GWAS hits
 gemma.out = processGemmaOutput(paste(gwasPrefix,myI,'.assoc.txt',sep=""))
-sig.sites = dplyr::filter(gemma.out, p_lrt < 0.005)
+sig.sites = dplyr::filter(gemma.out, p_lrt < pcutoff)
 
 #read in the sim sites
 causal.sites = read.table(paste('data/simFiles/causalSites.', myI, sep=""), header=T, stringsAsFactors = F, nrow = causalN)
@@ -99,9 +99,11 @@ return(c(true.pos, false.pos, true.neg, false.neg, mycor$estimate, mycor$p.value
 
 myGwasStats = sapply(1:200, gwasStats)
 myGwasStats50 = sapply(1:200, function(x){gwasStats(x, gwasPrefix = '../polygenic-maize/data/simFiles/gemmaout50.', causalN = 50)})
+myGwasStats50bonf = sapply(1:200, function(x){gwasStats(x, gwasPrefix = '../polygenic-maize/data/simFiles/gemmaout50.', causalN = 50, pcutoff =  2.5e-07/400000)})
 
 save(myGwasStats, file = 'data/gwasstats_ames.rda')
 save(myGwasStats50, file = 'data/gwasstats50_ames.rda')
+save(myGwasStats50bonf, file = 'data/gwasstats50bonf_ames.rda')
 ```
 
 Look at the sims
@@ -109,6 +111,7 @@ Look at the sims
 ```r
 load('data/gwasstats_ames.rda')
 load('data/gwasstats50_ames.rda')
+load('data/gwasstats50bonf_ames.rda')
 gwasStatsdf = data.frame(t(myGwasStats))
 names(gwasStatsdf) = c('truepos','falsepos','trueneg','falseneg','cor','pval')
 summary(gwasStatsdf)
@@ -152,6 +155,38 @@ summary(gwasStatsdf50)
 ##  Mean   :-0.0009911   Mean   :0.487871  
 ##  3rd Qu.: 0.0311217   3rd Qu.:0.759826  
 ##  Max.   : 0.1360693   Max.   :0.978455
+```
+
+```r
+gwasStatsdf50bonf = data.frame(t(myGwasStats50bonf))
+names(gwasStatsdf50bonf) = c('truepos','falsepos','trueneg','falseneg','cor','pval')
+summary(gwasStatsdf50bonf)
+```
+
+```
+##     truepos        falsepos        trueneg          falseneg    
+##  Min.   :0.00   Min.   : 0.00   Min.   :113507   Min.   :48.00  
+##  1st Qu.:0.00   1st Qu.: 0.00   1st Qu.:113536   1st Qu.:49.00  
+##  Median :0.50   Median : 0.00   Median :113536   Median :49.50  
+##  Mean   :0.56   Mean   : 0.76   Mean   :113535   Mean   :49.44  
+##  3rd Qu.:1.00   3rd Qu.: 0.00   3rd Qu.:113536   3rd Qu.:50.00  
+##  Max.   :2.00   Max.   :29.00   Max.   :113536   Max.   :50.00  
+##       cor                  pval         
+##  Min.   :-0.1215852   Min.   :0.002541  
+##  1st Qu.:-0.0350856   1st Qu.:0.258105  
+##  Median :-0.0055259   Median :0.476080  
+##  Mean   :-0.0009911   Mean   :0.487871  
+##  3rd Qu.: 0.0311217   3rd Qu.:0.759826  
+##  Max.   : 0.1360693   Max.   :0.978455
+```
+
+```r
+summary(gwasStatsdf50bonf$truepos + gwasStatsdf50bonf$falsepos)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##    0.00    0.00    1.00    1.32    1.00   30.00
 ```
 
 ### European lines
@@ -234,11 +269,11 @@ How many of simulated loci end up signficant in the GWAS analysis? How many of G
 ```r
 myI = 5
 
-gwasStatsEuro <- function(myI, gwasPrefix = '../polygenic-maize/data/simFiles/gemmaout.euro.', causalN=500){
+gwasStatsEuro <- function(myI, gwasPrefix = '../polygenic-maize/data/simFiles/gemmaout.euro.', causalN=500, pcutoff = 0.005){
 #read in the GWAS hits
 gemma.out = read.table(paste(gwasPrefix,myI,'.assoc.txt',sep=""), header=T, stringsAsFactors = F)
 gemma.out$locus = sapply(gemma.out$rs, function(x){paste('s',strsplit(x, ':')[[1]][1],'_',strsplit(x,':')[[1]][2], sep='')})
-sig.sites = dplyr::filter(gemma.out, p_lrt < 0.005)
+sig.sites = dplyr::filter(gemma.out, p_lrt < pcutoff)
 
 #read in the sim sites
 causal.sites = read.table(paste('data/simFiles/causalSites.euro.', myI, sep=""), header=T, stringsAsFactors = F, nrow=causalN)
@@ -262,8 +297,11 @@ return(c(true.pos, false.pos, true.neg, false.neg, mycor$estimate, mycor$p.value
 
 myGwasStatsEuro = sapply(1:200, gwasStatsEuro)
 myGwasStatsEuro50 = sapply(1:200, function(x){gwasStatsEuro(x, gwasPrefix = '../polygenic-maize/data/simFiles/gemmaout50.euro.', causalN = 50)})
+myGwasStatsEuro50bonf = sapply(1:200, function(x){gwasStatsEuro(x, gwasPrefix = '../polygenic-maize/data/simFiles/gemmaout50.euro.', causalN = 50, pcutoff =  2.5e-07/400000)})
+
 save(myGwasStatsEuro, file = 'data/gwasstats_euro.rda')
 save(myGwasStatsEuro50, file = 'data/gwasstats_euro50.rda')
+save(myGwasStatsEuro50bonf, file = 'data/gwasstats_euro50bonf.rda')
 ```
 
 Look at the sims
@@ -314,6 +352,39 @@ summary(gwasStatsdf50)
 ##  Mean   :-0.004003   Mean   :0.4964  
 ##  3rd Qu.: 0.039597   3rd Qu.:0.7124  
 ##  Max.   : 0.189812   Max.   :1.0000
+```
+
+```r
+load('data/gwasstats_euro50bonf.rda')
+gwasStatsdf50bonf = data.frame(t(myGwasStatsEuro50bonf))
+names(gwasStatsdf50bonf) = c('truepos','falsepos','trueneg','falseneg','cor','pval')
+summary(gwasStatsdf50bonf)
+```
+
+```
+##     truepos        falsepos         trueneg          falseneg    
+##  Min.   :0.00   Min.   : 0.000   Min.   :212629   Min.   :49.00  
+##  1st Qu.:0.00   1st Qu.: 0.000   1st Qu.:212674   1st Qu.:50.00  
+##  Median :0.00   Median : 0.000   Median :212674   Median :50.00  
+##  Mean   :0.14   Mean   : 0.565   Mean   :212673   Mean   :49.86  
+##  3rd Qu.:0.00   3rd Qu.: 0.000   3rd Qu.:212674   3rd Qu.:50.00  
+##  Max.   :1.00   Max.   :45.000   Max.   :212674   Max.   :50.00  
+##       cor                 pval       
+##  Min.   :-0.207632   Min.   :0.0132  
+##  1st Qu.:-0.050116   1st Qu.:0.2684  
+##  Median :-0.002090   Median :0.5059  
+##  Mean   :-0.004003   Mean   :0.4964  
+##  3rd Qu.: 0.039597   3rd Qu.:0.7124  
+##  Max.   : 0.189812   Max.   :1.0000
+```
+
+```r
+summary(gwasStatsdf50bonf$truepos + gwasStatsdf50bonf$falsepos)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   0.000   0.000   0.000   0.705   0.000  45.000
 ```
 
 

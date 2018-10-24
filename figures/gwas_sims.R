@@ -6,7 +6,10 @@ mycol = lacroix_palette('Mango')
 load('../data/gwasstats_euro.rda')
 load('../data/gwasstats_ames.rda')
 load('../data/gwasstats50_ames.rda')
+load('../data/gwasstats50bonf_ames.rda')
 load('../data/gwasstats_euro50.rda')
+load('../data/gwasstats_euro50bonf_ames.rda')
+
 
 eurodf = data.frame(t(myGwasStatsEuro))
 names(eurodf) = c('truepos','falsepos','trueneg','falseneg','cor','pval')
@@ -19,6 +22,9 @@ names(amesdf) = c('truepos','falsepos','trueneg','falseneg','cor','pval')
 
 amesdf50 = data.frame(t(myGwasStats50))
 names(amesdf50) = c('truepos','falsepos','trueneg','falseneg','cor','pval')
+
+amesdf50b = data.frame(t(myGwasStats50bonf))
+names(amesdf50b) = c('truepos','falsepos','trueneg','falseneg','cor','pval')
 
 
 ### MAKE PLOT

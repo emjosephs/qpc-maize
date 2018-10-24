@@ -80,10 +80,10 @@ How many of simulated loci end up signficant in the GWAS analysis? How many of G
 ```{r gwasqs, eval=F}
 myI = 5
 
-gwasStats <- function(myI, gwasPrefix = '../polygenic-maize/data/simFiles/gemmaout.', causalN = 500){
+gwasStats <- function(myI, gwasPrefix = '../polygenic-maize/data/simFiles/gemmaout.', causalN = 500, pcutoff = 0.005){
 #read in the GWAS hits
 gemma.out = processGemmaOutput(paste(gwasPrefix,myI,'.assoc.txt',sep=""))
-sig.sites = dplyr::filter(gemma.out, p_lrt < 0.005)
+sig.sites = dplyr::filter(gemma.out, p_lrt < pcutoff)
 
 #read in the sim sites
 causal.sites = read.table(paste('data/simFiles/causalSites.', myI, sep=""), header=T, stringsAsFactors = F, nrow = causalN)
@@ -107,10 +107,11 @@ return(c(true.pos, false.pos, true.neg, false.neg, mycor$estimate, mycor$p.value
 
 myGwasStats = sapply(1:200, gwasStats)
 myGwasStats50 = sapply(1:200, function(x){gwasStats(x, gwasPrefix = '../polygenic-maize/data/simFiles/gemmaout50.', causalN = 50)})
+myGwasStats50bonf = sapply(1:200, function(x){gwasStats(x, gwasPrefix = '../polygenic-maize/data/simFiles/gemmaout50.', causalN = 50, pcutoff =  2.5e-07/400000)})
 
 save(myGwasStats, file = 'data/gwasstats_ames.rda')
 save(myGwasStats50, file = 'data/gwasstats50_ames.rda')
-
+save(myGwasStats50bonf, file = 'data/gwasstats50bonf_ames.rda')
 
 ```
 
@@ -118,6 +119,7 @@ Look at the sims
 ```{r}
 load('data/gwasstats_ames.rda')
 load('data/gwasstats50_ames.rda')
+load('data/gwasstats50bonf_ames.rda')
 gwasStatsdf = data.frame(t(myGwasStats))
 names(gwasStatsdf) = c('truepos','falsepos','trueneg','falseneg','cor','pval')
 summary(gwasStatsdf)
@@ -125,6 +127,12 @@ summary(gwasStatsdf)
 gwasStatsdf50 = data.frame(t(myGwasStats50))
 names(gwasStatsdf50) = c('truepos','falsepos','trueneg','falseneg','cor','pval')
 summary(gwasStatsdf50)
+
+gwasStatsdf50bonf = data.frame(t(myGwasStats50bonf))
+names(gwasStatsdf50bonf) = c('truepos','falsepos','trueneg','falseneg','cor','pval')
+summary(gwasStatsdf50bonf)
+summary(gwasStatsdf50bonf$truepos + gwasStatsdf50bonf$falsepos)
+
 ```
 
 ### European lines
@@ -207,11 +215,11 @@ How many of simulated loci end up signficant in the GWAS analysis? How many of G
 ```{r gwasqs2, eval=F}
 myI = 5
 
-gwasStatsEuro <- function(myI, gwasPrefix = '../polygenic-maize/data/simFiles/gemmaout.euro.', causalN=500){
+gwasStatsEuro <- function(myI, gwasPrefix = '../polygenic-maize/data/simFiles/gemmaout.euro.', causalN=500, pcutoff = 0.005){
 #read in the GWAS hits
 gemma.out = read.table(paste(gwasPrefix,myI,'.assoc.txt',sep=""), header=T, stringsAsFactors = F)
 gemma.out$locus = sapply(gemma.out$rs, function(x){paste('s',strsplit(x, ':')[[1]][1],'_',strsplit(x,':')[[1]][2], sep='')})
-sig.sites = dplyr::filter(gemma.out, p_lrt < 0.005)
+sig.sites = dplyr::filter(gemma.out, p_lrt < pcutoff)
 
 #read in the sim sites
 causal.sites = read.table(paste('data/simFiles/causalSites.euro.', myI, sep=""), header=T, stringsAsFactors = F, nrow=causalN)
@@ -235,9 +243,11 @@ return(c(true.pos, false.pos, true.neg, false.neg, mycor$estimate, mycor$p.value
 
 myGwasStatsEuro = sapply(1:200, gwasStatsEuro)
 myGwasStatsEuro50 = sapply(1:200, function(x){gwasStatsEuro(x, gwasPrefix = '../polygenic-maize/data/simFiles/gemmaout50.euro.', causalN = 50)})
+myGwasStatsEuro50bonf = sapply(1:200, function(x){gwasStatsEuro(x, gwasPrefix = '../polygenic-maize/data/simFiles/gemmaout50.euro.', causalN = 50, pcutoff =  2.5e-07/400000)})
+
 save(myGwasStatsEuro, file = 'data/gwasstats_euro.rda')
 save(myGwasStatsEuro50, file = 'data/gwasstats_euro50.rda')
-
+save(myGwasStatsEuro50bonf, file = 'data/gwasstats_euro50bonf.rda')
 
 ```
 
@@ -252,6 +262,14 @@ load('data/gwasstats_euro50.rda')
 gwasStatsdf50 = data.frame(t(myGwasStatsEuro50))
 names(gwasStatsdf50) = c('truepos','falsepos','trueneg','falseneg','cor','pval')
 summary(gwasStatsdf50)
+
+
+load('data/gwasstats_euro50bonf.rda')
+gwasStatsdf50bonf = data.frame(t(myGwasStatsEuro50bonf))
+names(gwasStatsdf50bonf) = c('truepos','falsepos','trueneg','falseneg','cor','pval')
+summary(gwasStatsdf50bonf)
+summary(gwasStatsdf50bonf$truepos + gwasStatsdf50bonf$falsepos)
+
 ```
 
 

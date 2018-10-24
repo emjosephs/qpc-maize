@@ -54,40 +54,49 @@ mySimTrait1 = (myTraits[1,1]$simT[1:906] - mean(myTraits[1,1]$simT[1:906]))/sqrt
 
 
 postscript("Simplot.eps",height=8,width=8,paper="special",horizontal=FALSE,colormodel="cymk")
-par(mfrow = c(2,2), mar=c(5,5,2,2))
+par(mfrow = c(2,2), mar=c(5,5,2,2), cex.lab=1.5)
+
+plot(myEig$vectors[,1],mySimTrait1, bty="n", col = mycol[4], lwd=1, ylim = c(-4.5,4.5),
+     xlab = "PC 1", ylab = "Simulated Trait", yaxt="n", xlim = c(-0.06,0.06))
+#points(myEig$vectors[,1], mySimTrait1, col = mycol[4], lwd=1)
+axis(2, las=2)
+mtext('A', side=3, adj=0, cex=1.5, line=0)
+#legend('bottomleft', c('Simulated traits','Polygenic scores'), bty="n", pch=1,pt.lwd=2, col = mycol[c(4,6)], cex=1.3)
+
+
+plot(myEig$vectors[,1],myGwasTrait1, bty="n", col = mycol[6], lwd=1, ylim = c(-4.5,4.5),
+     xlab = "PC 1", ylab = "Polygenic Score", yaxt="n", xlim = c(-0.06,0.06))
+#points(myEig$vectors[,1], mySimTrait1, col = mycol[4], lwd=1)
+axis(2, las=2)
+mtext('B', side=3, adj=0, cex=1.5, line=0)
+#legend('bottomleft', c('Simulated traits','Polygenic scores'), bty="n", pch=1,pt.lwd=2, col = mycol[c(4,6)], cex=1.3)
+
 
 
 plot(-1,-1, ylim = c(0,1), xlim = c(1,30), bty="n", xlab = "PC", ylab = "Proportion significant tests", xaxt="n", yaxt = "n")
 abline(h=0.05, col = mycol[6], lwd=2)
-test = barplot(rbind(prop05(nap)[1:10], prop05(cap)[1:10]), beside=T, border=NA, col = mycol[c(2,5)], ylim=c(0,1), add=T, yaxt="n")
+test = barplot(rbind(prop05(nap)[1:10], prop05(cap)[1:10]), beside=T, border=NA, col = mycol[c(2,6)], ylim=c(0,1), add=T, yaxt="n")
 axis(1, at = test[1,]+ 0.5, lab = 1:10, cex=1.5)
 axis(2, las=2)
-legend('topleft', c('Ames Non-conditional test', 'Ames Conditional test'), fill = mycol[c(2,5)], border="white", bty="n")
-mtext('A', side=3, adj=0, cex=2, line=0)
+legend('topleft', c('Ames Non-conditional test', 'Ames Conditional test'), fill = mycol[c(2,6)], border="white", bty="n", cex=1.3)
+mtext('C', side=3, adj=0, cex=1.5, line=0)
 
 
 
 plot(-1,-1, ylim = c(0,1), xlim = c(1,30), bty="n", xlab = "PC", ylab = "Proportion significant tests", xaxt="n", yaxt = "n")
 abline(h=0.05, col = mycol[6], lwd=2)
-test = barplot(rbind(prop05(nep)[1:10], prop05(cep)[1:10]), beside=T, border=NA, col = mycol[c(2,5)], ylim=c(0,1), add=T, yaxt="n")
+test = barplot(rbind(prop05(nep)[1:10], prop05(cep)[1:10]), beside=T, border=NA, col = mycol[c(2,6)], ylim=c(0,1), add=T, yaxt="n")
 axis(1, at = test[1,]+ 0.5, lab = 1:10, cex=1.5)
 axis(2, las=2)
-legend('topleft', c('Europe Non-conditional test', 'Europe Conditional test'), fill = mycol[c(2,5)], border="white", bty="n")
-mtext('B', side=3, adj=0, cex=2, line=0)
+legend('topleft', c('Europe Non-conditional test', 'Europe Conditional test'), fill = mycol[c(2,6)], border="white", bty="n", cex=1.3)
+mtext('D', side=3, adj=0, cex=1.5, line=0)
 
-plot(myEig$vectors[,1],myGwasTrait1, bty="n", col = mycol[3], lwd=1, ylim = c(-4,4),
-     xlab = "PC 1", ylab = "Trait", yaxt="n", xlim = c(-0.06,0.06))
-points(myEig$vectors[,1], mySimTrait1, col = mycol[6], lwd=1)
-axis(2, las=2)
-mtext('C', side=3, adj=0, cex=2, line=0)
-legend('bottomleft', c('Simulated traits','Ascertained traits'), bty="n", pch=1,pt.lwd=2, col = mycol[c(6,3)])
-
-plot(-1,-1, ylim = c(-5,5), xlim = c(-0.06,0.06), bty="n", xlab = "PC 1", yla = "Trait", col = mycol[1], yaxt="n")
-test = sapply(1:200, function(x) {abline(gwascors[1,x], col = mycol[3], lwd=1)})
-test = sapply(1:200, function(x) {abline(simcors[1,x], col = mycol[6], lwd=1)})
-axis(2, las=2)
-legend('topright',c('Simulated traits','Ascertained traits'), lwd = 2, col = mycol[c(6,3)], bty="n")
-mtext('D', side=3, adj=0, cex=2, line=0)
+#plot(-1,-1, ylim = c(-5,5), xlim = c(-0.06,0.06), bty="n", xlab = "PC 1", yla = "Trait", col = mycol[1], yaxt="n")
+#test = sapply(1:200, function(x) {abline(gwascors[1,x], col = mycol[3], lwd=1)})
+#test = sapply(1:200, function(x) {abline(simcors[1,x], col = mycol[6], lwd=1)})
+#axis(2, las=2)
+#legend('topright',c('Simulated traits','Ascertained traits'), lwd = 2, col = mycol[c(6,3)], bty="n")
+#mtext('D', side=3, adj=0, cex=2, line=0)
 
 dev.off()
 
