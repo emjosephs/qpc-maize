@@ -47,7 +47,7 @@ axis(2, las=2)
 axis(1, at = c(0.2,0.4,0.6,0.8), labels = c('Ames 500', 'Euro 500','Ames 50','Euro 50'), cex=2, las=2)
 lines(x = c(0,.5), y = c(500,500), col = mycol[3], lty=2, lwd=3)
 lines(x = c(.5,1), y = c(50,50), col = mycol[3], lty=2, lwd=3)
-mtext('number of significant SNPs found in GWAS', side=2, line=6, cex=1.5)
+mtext('number of significant SNPs found in GWAS (with pruning)', side=2, line=6, cex=1.5)
 mtext('A', side=3, adj=-0.3, cex=2, line=0)
 
 plot(jitter(c(rep(0.2,200),rep(0.4,200), rep(0.6,200),rep(0.8,200)), factor=0.5),c(amesdf$truepos,eurodf$truepos, 
@@ -74,7 +74,7 @@ points(c(0.2, 0.4,0.6,0.8), c(mean(amesdf$tot.hits/(amesdf$truepos+amesdf$falsep
                                                              mean(eurodf50$tot.hits/(eurodf50$truepos+eurodf50$falsepos))), cex=2, lwd=4, pch=16)
 axis(1, at = c(0.2,0.4,0.6,0.8), labels = c('Ames 500', 'Euro 500','Ames 50','Euro 50'), cex=2, las=2)
 axis(2, las=2)
-mtext('Proportion of GWAS hits that are true positives', side=2, line=6, cex=1.5)
+mtext('Proportion of GWAS hits that are in a window with true positives', side=2, line=6, cex=1.5)
 mtext('C', side=3, adj=-0.3, cex=2, line=0)
 
 dev.off()
