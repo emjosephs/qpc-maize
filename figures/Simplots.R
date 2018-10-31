@@ -139,3 +139,23 @@ legend('topleft', c('Europe Non-conditional test', 'Europe Conditional test'), f
 mtext('B', side=3, adj=0, cex=2, line=0)
 
 dev.off()
+
+
+
+#for talks
+# plot(-1,-1, ylim = c(0,1), xlim = c(1,30), bty="n", xlab = "PC", ylab = "Proportion significant tests", xaxt="n", yaxt = "n", cex.lab = 2, cex.axis=2)
+# test = barplot(rbind(prop05(nep)[1:10], prop05(cep)[1:10]), beside=T, border=NA, col = c(mycol[2],'white'), ylim=c(0,1), add=T, yaxt="n")
+# abline(h=0.05, col = mycol[6], lwd=2)
+# axis(1, at = test[1,]+ 0.5, lab = 1:10, cex.axis=1.5)
+# axis(2, las=2, cex.axis=1.5)
+# 
+# 
+# plot(-1,-1, ylim = c(0,1), xlim = c(1,30), bty="n", xlab = "PC", ylab = "Proportion significant tests", xaxt="n", yaxt = "n", cex.lab = 2, cex.axis=2)
+# test = barplot(rbind(prop05(nep)[1:10], prop05(cep)[1:10]), beside=T, border=NA, col = c(mycol[2],mycol[6]), ylim=c(0,1), add=T, yaxt="n")
+# abline(h=0.05, col = mycol[6], lwd=2)
+# axis(1, at = test[1,]+ 0.5, lab = 1:10, cex.axis=1.5)
+# axis(2, las=2, cex.axis=1.5)
+# 
+# legend('topleft', c('Non-conditional test', 'Conditional test'), fill = mycol[c(2,6)], border="white", bty="n", cex=1.3)
+# 
+

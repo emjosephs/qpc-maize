@@ -28,10 +28,10 @@ names(amesdf) = c('truepos','falsepos','falseneg', 'tot.hits')
 
 amesdf50 = data.frame(t(myGwasStats50))
 names(amesdf50) = c('truepos','falsepos','falseneg', 'tot.hits')
+summary(amesdf50)
 
 amesdf50b = data.frame(t(myGwasStats50bonf))
 names(amesdf50b) = c('truepos','falsepos','falseneg', 'tot.hits')
-
 
 
 ### MAKE PLOT
@@ -62,19 +62,19 @@ lines(x = c(0,.5), y = c(500,500), col = mycol[3], lty=2, lwd=3)
 lines(x = c(.5,1), y = c(50,50), col = mycol[3], lty=2, lwd=3)
 mtext('B', side=3, adj=-0.3, cex=2, line=0)
 
-plot(jitter(c(rep(0.2,200),rep(0.4,200), rep(0.6,200),rep(0.8,200)), factor=0.5),c(amesdf$tot.hits/(amesdf$truepos+amesdf$falsepos),
-                                                                                   eurodf$tot.hits/(eurodf$truepos+eurodf$falsepos), 
-                                                                                   amesdf50$tot.hits/(amesdf50$truepos+amesdf50$falsepos), 
-                                                                                   eurodf50$tot.hits/(eurodf50$truepos+eurodf50$falsepos)), 
+plot(jitter(c(rep(0.2,200),rep(0.4,200), rep(0.6,200),rep(0.8,200)), factor=0.5),c(amesdf$truepos/amesdf$tot.hits,
+                                                                                   eurodf$truepos/eurodf$tot.hits, 
+                                                                                   amesdf50$truepos/amesdf50$tot.hits, 
+                                                                                   eurodf50$truepos/eurodf50$tot.hits), 
      xlim = c(0,1), bty="n",
      ylab = "", xlab = "", yaxt = "n", xaxt="n", col = mycol[2])
-points(c(0.2, 0.4,0.6,0.8), c(mean(amesdf$tot.hits/(amesdf$truepos+amesdf$falsepos)),
-                                                             mean(eurodf$tot.hits/(eurodf$truepos+eurodf$falsepos)), 
-                                                             mean(amesdf50$tot.hits/(amesdf50$truepos+amesdf50$falsepos)), 
-                                                             mean(eurodf50$tot.hits/(eurodf50$truepos+eurodf50$falsepos))), cex=2, lwd=4, pch=16)
+points(c(0.2, 0.4,0.6,0.8), c(mean(amesdf$truepos/(amesdf$tot.hits)),
+                                                             mean(eurodf$truepos/(eurodf$tot.hits)), 
+                                                             mean(amesdf50$truepos/(amesdf50$tot.hits)), 
+                                                             mean(eurodf50$truepos/(eurodf50$tot.hits))), cex=2, lwd=4, pch=16)
 axis(1, at = c(0.2,0.4,0.6,0.8), labels = c('Ames 500', 'Euro 500','Ames 50','Euro 50'), cex=2, las=2)
 axis(2, las=2)
-mtext('Proportion of GWAS hits that are in a window with true positives', side=2, line=6, cex=1.5)
+mtext('Prop. of true positives that captured by a GWAS hit', side=2, line=6, cex=1.5)
 mtext('C', side=3, adj=-0.3, cex=2, line=0)
 
 dev.off()
