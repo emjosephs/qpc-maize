@@ -135,27 +135,27 @@ save(mysims, file = "data/simFiles/qpc_loci_sims.rda")
 
 
 
-## simulate allele frequencies in each of 240 pops. nloci = 10500, 500 of these are used to make the trait, the rest to estimate K
+## simulate allele frequencies in each of 240 pops. nloci = 10500, 500 of these are used to make the trait, the rest to estimate K. Can use the K from the earlier sites, so only need to worry about the new 500 ones
 
 mysims500 = sapply(1:200, function(i){
 set.seed(i)
-nloci = 10550
+nloci = 500
 ancPop = runif(nloci, min=0, max=1) #ancestral allele frequenices
 presentPops1 = sapply(ancPop, function(x){mvrnorm(n=1, mu = rep(x,239), x*(1-x)*myK)})
 presentPops = apply(presentPops1, c(1,2), myBound) #deal with numbers greater or less than 0 (the outer bounds are sticky)
 popGenos = sapply(1:239, function(x) getPopGenos(x, presentPops, 1)) # matrix where each row is a SNP and each column is an individual
-myG = t(popGenos[501:10500,])/2#snps used to make K matrix
-myKsim = make_k_E(myG) #make a new pop matrix
-myEigsim = eigen(myKsim)
+#myG = t(popGenos[501:10500,])/2#snps used to make K matrix
+#myKsim = make_k_E(myG) #make a new pop matrix
+#myEigsim = eigen(myKsim)
 #plot(1:239,myEigsim$values[1:239])
-beetas = matrix(c(rnorm(500), rep(0, 10000)), ncol=1, nrow=nloci) 
+beetas = matrix(rnorm(500), ncol=1, nrow=500) 
 popPhenos = apply(popGenos, 2, function(x){x %*% beetas})
-myQpcneutral = calcQpc(popPhenos, myEigsim$vectors, myEigsim$values)
+#myQpcneutral = calcQpc(popPhenos, myEigsim$vectors, myEigsim$values)
 #plot(myEigsim$vectors[,1], popPhenos, bty="n", xlab = "PC1", ylab ="Sim phenos"
-return(list(phenos = popPhenos, kSim = myKsim, myCms = myQpcneutral$cm))
+return(list(phenos = popPhenos))
 })
 
-save(mysims50, file = "data/simFiles/qpc_loci_sims50.rda")
+save(mysims500, file = "data/simFiles/qpc_loci_sims500.rda")
 ```
 
 
@@ -164,10 +164,24 @@ Look at the simulations
 ```r
 mycol = lacroix_palette('Mango')
 load('data/simFiles/qpc_loci_sims.rda')
+load('data/simFiles/qpc_loci_sims500.rda')
 #mysims is a matrix, each column is a sim. first row is phenotypes (in 1 item list), second row is a one item list with the kinship matrix in it, third row is a list of the cm values. 
 #what do CM values look like across PCs
 myCms = sapply(1:200, function(x){mysims[3,x][[1]]}) #rows are PCs, cols are simulations
 myCmMeans = sapply(1:238, function(x){mean(myCms[x,]^2)})
+
+#generate the Cm values for the 500 snp sims
+myQpc500 = sapply(1:200, function(i){
+  myphenos = mysims500[[i]]
+  kSim = mysims[,i]$kSim
+  myEigsim = eigen(kSim)
+  myQpcneutral = calcQpc(myphenos, myEigsim$vectors, myEigsim$values)
+  return(myQpcneutral)
+})
+
+myCms500 = sapply(1:200, function(x){myQpc500[1,x][[1]]}) #rows are PCs, cols are simulations
+myCmMeans500 = sapply(1:238, function(x){mean(myCms500[x,]^2)})
+
 
 #what is Va going to be?? based on our expectations from neutral sites
 myVas = sapply(1:200, function(x){calcVa(runif(50, min=0, max=1), rnorm(50))})
@@ -177,15 +191,23 @@ hist(myVas)
 ![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
 
 ```r
+myVas500 = sapply(1:200, function(x){calcVa(runif(500, min=0, max=1), rnorm(500))})
+hist(myVas500)
+```
+
+![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-2.png)<!-- -->
+
+```r
 ## so Cm~N(0,2Va), so cm^2 ~ 2Va
 
+#for the 50 snps sims
 plot(-100,-100, xlim = c(0,240), ylim = c(0,max(myCms)^2), bty="n", xlab = "PC", ylab = "Cm^2")
 test = sapply(1:200, function(x){points(1:238,myCms[,x]^2, col = mycol[3])})
 abline(v = 0.9*239, lwd=2)
 points(1:238,myCmMeans, col = mycol[6], pch=16)
 ```
 
-![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-2.png)<!-- -->
+![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-3.png)<!-- -->
 
 ```r
 myl = lm(myCmMeans ~ c(1:238))
@@ -224,7 +246,46 @@ points(noisefit, type='l', lwd=2, col = mycol[3])
 legend('topleft', c('Va', 'linear model', 'noise'), lwd=2, col = mycol[c(4,2,3)], bty="n")
 ```
 
-![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-3.png)<!-- -->
+![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-4.png)<!-- -->
+
+```r
+## for the 500 snps sims
+myl500 = lm(myCmMeans500 ~ c(1:238))
+summary(myl500)
+```
+
+```
+## 
+## Call:
+## lm(formula = myCmMeans500 ~ c(1:238))
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -112.859  -26.520   -0.825   25.732  109.320 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 323.80394    5.03805   64.27   <2e-16 ***
+## c(1:238)      0.48676    0.03655   13.32   <2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 38.74 on 236 degrees of freedom
+## Multiple R-squared:  0.4291,	Adjusted R-squared:  0.4267 
+## F-statistic: 177.4 on 1 and 236 DF,  p-value: < 2.2e-16
+```
+
+```r
+plot(1:238, myCmMeans500, bty="n", xlab = "PC", ylab = "CM^2 means")
+abline(myl500, col = mycol[2], lwd=3)
+abline(h = mean(myVas500)*2, lwd=3, col = mycol[4])
+#points(noisefit, type='l', lwd=2, col = mycol[3])
+
+#legend('topleft', c('Va', 'linear model', 'noise'), lwd=2, col = mycol[c(4,2,3)], bty="n")
+legend('topleft', c('Va', 'linear model'), lwd=2, col = mycol[c(4,2)], bty="n")
+```
+
+![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-5.png)<!-- -->
 
 ```r
 #how often are we detecting selection using our standard parameters
@@ -235,7 +296,7 @@ plot(-100,-100, xlim = c(0,40), ylim=c(0, -log10(min(unlist(myps)))*1.1), bty="n
 test = sapply(1:200, function(x){points(-log10(myps[[x]]))})
 ```
 
-![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-4.png)<!-- -->
+![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-6.png)<!-- -->
 
 ```r
 #how many are below 0.05
@@ -247,7 +308,33 @@ plot(myps0.05/200, bty="n", xlab = "PC", ylab = "proportion where p<0.05", ylim 
 abline(h=0.05, col = mycol[3], lwd=2)
 ```
 
-![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-5.png)<!-- -->
+![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-7.png)<!-- -->
+
+```r
+#how often are we detecting selection using our standard parameters for 500 snps
+
+myps500 = sapply(1:200, function(x){myQpc500[,x]$pvals})
+plot(-100,-100, xlim = c(0,40), ylim=c(0, -log10(min(unlist(myps500)))*1.1), bty="n", xlab = "PC", ylab = "-log10 p")
+test = sapply(1:200, function(x){points(-log10(myps500[[x]]))})
+```
+
+![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-8.png)<!-- -->
+
+```r
+#how many are below 0.05
+myps0.05 = sapply(1:40, function(x){
+  pcpvals = unlist(lapply(myps500, function(y){y[x]}))
+  return(sum(pcpvals<0.05, na.rm=T))
+})
+plot(myps0.05/200, bty="n", xlab = "PC", ylab = "proportion where p<0.05", ylim = c(0,0.25))
+abline(h=0.05, col = mycol[3], lwd=2)
+```
+
+![](Simulations-traitqpc_files/figure-html/unnamed-chunk-4-9.png)<!-- -->
+
+```r
+##to do -- compare Va estimatates across all sites...
+```
 
 
 

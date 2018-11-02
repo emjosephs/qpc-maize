@@ -124,15 +124,14 @@ Doing simulations where we incorporate actual loci
 
 
 ## simulate allele frequencies in each of 240 pops. nloci = 10050, 50 of these are used to make the trait, the rest to estimate K
-
+nloci = 100500
 mysims = sapply(1:200, function(i){
 set.seed(i)
-nloci = 10050
 ancPop = runif(nloci, min=0, max=1) #ancestral allele frequenices
 presentPops1 = sapply(ancPop, function(x){mvrnorm(n=1, mu = rep(x,239), x*(1-x)*myK)})
 presentPops = apply(presentPops1, c(1,2), myBound) #deal with numbers greater or less than 0 (the outer bounds are sticky)
 popGenos = sapply(1:239, function(x) getPopGenos(x, presentPops, 1)) # matrix where each row is a SNP and each column is an individual
-myG = t(popGenos[51:10050,])/2#snps used to make K matrix
+myG = t(popGenos[51:100500,])/2#snps used to make K matrix
 myKsim = make_k_E(myG) #make a new pop matrix
 myEigsim = eigen(myKsim)
 #plot(1:239,myEigsim$values[1:239])
@@ -143,31 +142,32 @@ myQpcneutral = calcQpc(popPhenos, myEigsim$vectors, myEigsim$values)
 return(list(phenos = popPhenos, kSim = myKsim, myCms = myQpcneutral$cm))
 })
 
-save(mysims, file = "data/simFiles/qpc_loci_sims.rda")
+save(mysims, file = "data/simFiles/qpc-loci-sims.rda")
 
 
 
-## simulate allele frequencies in each of 240 pops. nloci = 10500, 500 of these are used to make the trait, the rest to estimate K
+## simulate allele frequencies in each of 240 pops. nloci = 10500, 500 of these are used to make the trait, the rest to estimate K. Can use the K from the earlier sites, so only need to worry about the new 500 ones
 
 mysims500 = sapply(1:200, function(i){
 set.seed(i)
-nloci = 10500
+nloci = 500
 ancPop = runif(nloci, min=0, max=1) #ancestral allele frequenices
 presentPops1 = sapply(ancPop, function(x){mvrnorm(n=1, mu = rep(x,239), x*(1-x)*myK)})
 presentPops = apply(presentPops1, c(1,2), myBound) #deal with numbers greater or less than 0 (the outer bounds are sticky)
 popGenos = sapply(1:239, function(x) getPopGenos(x, presentPops, 1)) # matrix where each row is a SNP and each column is an individual
-myG = t(popGenos[501:10500,])/2#snps used to make K matrix
-myKsim = make_k_E(myG) #make a new pop matrix
-myEigsim = eigen(myKsim)
+#myG = t(popGenos[501:10500,])/2#snps used to make K matrix
+#myKsim = make_k_E(myG) #make a new pop matrix
+#myEigsim = eigen(myKsim)
 #plot(1:239,myEigsim$values[1:239])
-beetas = matrix(c(rnorm(500), rep(0, 10000)), ncol=1, nrow=nloci) 
+beetas = matrix(rnorm(500), ncol=1, nrow=500) 
 popPhenos = apply(popGenos, 2, function(x){x %*% beetas})
-myQpcneutral = calcQpc(popPhenos, myEigsim$vectors, myEigsim$values)
+#myQpcneutral = calcQpc(popPhenos, myEigsim$vectors, myEigsim$values)
 #plot(myEigsim$vectors[,1], popPhenos, bty="n", xlab = "PC1", ylab ="Sim phenos"
-return(list(phenos = popPhenos, kSim = myKsim, myCms = myQpcneutral$cm))
+return(list(phenos = popPhenos))
 })
 
-save(mysims50, file = "data/simFiles/qpc_loci_sims50.rda")
+save(mysims500, file = "data/simFiles/qpc_loci_sims500.rda")
+
 ```
 
 
@@ -175,17 +175,35 @@ Look at the simulations
 ```{r}
 mycol = lacroix_palette('Mango')
 load('data/simFiles/qpc_loci_sims.rda')
+load('data/simFiles/qpc_loci_sims500.rda')
 #mysims is a matrix, each column is a sim. first row is phenotypes (in 1 item list), second row is a one item list with the kinship matrix in it, third row is a list of the cm values. 
 #what do CM values look like across PCs
 myCms = sapply(1:200, function(x){mysims[3,x][[1]]}) #rows are PCs, cols are simulations
 myCmMeans = sapply(1:238, function(x){mean(myCms[x,]^2)})
 
+#generate the Cm values for the 500 snp sims
+myQpc500 = sapply(1:200, function(i){
+  myphenos = mysims500[[i]]
+  kSim = mysims[,i]$kSim
+  myEigsim = eigen(kSim)
+  myQpcneutral = calcQpc(myphenos, myEigsim$vectors, myEigsim$values)
+  return(myQpcneutral)
+})
+
+myCms500 = sapply(1:200, function(x){myQpc500[1,x][[1]]}) #rows are PCs, cols are simulations
+myCmMeans500 = sapply(1:238, function(x){mean(myCms500[x,]^2)})
+
+
 #what is Va going to be?? based on our expectations from neutral sites
 myVas = sapply(1:200, function(x){calcVa(runif(50, min=0, max=1), rnorm(50))})
 hist(myVas)
 
+myVas500 = sapply(1:200, function(x){calcVa(runif(500, min=0, max=1), rnorm(500))})
+hist(myVas500)
+
 ## so Cm~N(0,2Va), so cm^2 ~ 2Va
 
+#for the 50 snps sims
 plot(-100,-100, xlim = c(0,240), ylim = c(0,max(myCms)^2), bty="n", xlab = "PC", ylab = "Cm^2")
 test = sapply(1:200, function(x){points(1:238,myCms[,x]^2, col = mycol[3])})
 abline(v = 0.9*239, lwd=2)
@@ -204,6 +222,20 @@ points(noisefit, type='l', lwd=2, col = mycol[3])
 legend('topleft', c('Va', 'linear model', 'noise'), lwd=2, col = mycol[c(4,2,3)], bty="n")
 
 
+## for the 500 snps sims
+myl500 = lm(myCmMeans500 ~ c(1:238))
+summary(myl500)
+
+
+plot(1:238, myCmMeans500, bty="n", xlab = "PC", ylab = "CM^2 means")
+abline(myl500, col = mycol[2], lwd=3)
+abline(h = mean(myVas500)*2, lwd=3, col = mycol[4])
+#points(noisefit, type='l', lwd=2, col = mycol[3])
+
+#legend('topleft', c('Va', 'linear model', 'noise'), lwd=2, col = mycol[c(4,2,3)], bty="n")
+legend('topleft', c('Va', 'linear model'), lwd=2, col = mycol[c(4,2)], bty="n")
+
+
 #how often are we detecting selection using our standard parameters
 myQpc = sapply(1:200, function(x){calcQpc(mysims[1,x]$phenos, eigen(mysims[2,x]$kSim)$vectors, eigen(mysims[2,x]$kSim)$values)})
 
@@ -218,6 +250,23 @@ myps0.05 = sapply(1:40, function(x){
 })
 plot(myps0.05/200, bty="n", xlab = "PC", ylab = "proportion where p<0.05", ylim = c(0,0.25))
 abline(h=0.05, col = mycol[3], lwd=2)
+
+
+
+#how often are we detecting selection using our standard parameters for 500 snps
+
+myps500 = sapply(1:200, function(x){myQpc500[,x]$pvals})
+plot(-100,-100, xlim = c(0,40), ylim=c(0, -log10(min(unlist(myps500)))*1.1), bty="n", xlab = "PC", ylab = "-log10 p")
+test = sapply(1:200, function(x){points(-log10(myps500[[x]]))})
+
+#how many are below 0.05
+myps0.05 = sapply(1:40, function(x){
+  pcpvals = unlist(lapply(myps500, function(y){y[x]}))
+  return(sum(pcpvals<0.05, na.rm=T))
+})
+plot(myps0.05/200, bty="n", xlab = "PC", ylab = "proportion where p<0.05", ylim = c(0,0.25))
+abline(h=0.05, col = mycol[3], lwd=2)
+
 
 ##to do -- compare Va estimatates across all sites...
 
