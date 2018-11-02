@@ -50,7 +50,6 @@ myLambdas = eigF$values
 varexp = myLambdas/sum(myLambdas)
 sumexp = sapply(1:length(varexp), function(x){sum(varexp[1:x])})
 pcmax = which(sumexp > 0.3)[1]
-tailCutoff = round(.9*length(myLambdas))
 ```
 
 ```{r qpcsims, eval=F}
@@ -131,47 +130,25 @@ ancPop = runif(nloci, min=0, max=1) #ancestral allele frequenices
 presentPops1 = sapply(ancPop, function(x){mvrnorm(n=1, mu = rep(x,239), x*(1-x)*myK)})
 presentPops = apply(presentPops1, c(1,2), myBound) #deal with numbers greater or less than 0 (the outer bounds are sticky)
 popGenos = sapply(1:239, function(x) getPopGenos(x, presentPops, 1)) # matrix where each row is a SNP and each column is an individual
-myG = t(popGenos[51:100500,])/2#snps used to make K matrix
-myKsim = make_k_E(myG) #make a new pop matrix
+myG = t(popGenos[501:100500,])/2#snps used to make K matrix
+myKsim = make_k_E(myG) #make a new pop matrix based on the simulated snps
 myEigsim = eigen(myKsim)
-#plot(1:239,myEigsim$values[1:239])
 beetas = matrix(c(rnorm(50), rep(0, 10000)), ncol=1, nrow=nloci) 
 popPhenos = apply(popGenos, 2, function(x){x %*% beetas})
 myQpcneutral = calcQpc(popPhenos, myEigsim$vectors, myEigsim$values)
-#plot(myEigsim$vectors[,1], popPhenos, bty="n", xlab = "PC1", ylab ="Sim phenos"
 return(list(phenos = popPhenos, kSim = myKsim, myCms = myQpcneutral$cm))
 })
 
 save(mysims, file = "data/simFiles/qpc-loci-sims.rda")
 
 
-
-## simulate allele frequencies in each of 240 pops. nloci = 10500, 500 of these are used to make the trait, the rest to estimate K. Can use the K from the earlier sites, so only need to worry about the new 500 ones
-
-mysims500 = sapply(1:200, function(i){
-set.seed(i)
-nloci = 500
-ancPop = runif(nloci, min=0, max=1) #ancestral allele frequenices
-presentPops1 = sapply(ancPop, function(x){mvrnorm(n=1, mu = rep(x,239), x*(1-x)*myK)})
-presentPops = apply(presentPops1, c(1,2), myBound) #deal with numbers greater or less than 0 (the outer bounds are sticky)
-popGenos = sapply(1:239, function(x) getPopGenos(x, presentPops, 1)) # matrix where each row is a SNP and each column is an individual
-#myG = t(popGenos[501:10500,])/2#snps used to make K matrix
-#myKsim = make_k_E(myG) #make a new pop matrix
-#myEigsim = eigen(myKsim)
-#plot(1:239,myEigsim$values[1:239])
-beetas = matrix(rnorm(500), ncol=1, nrow=500) 
-popPhenos = apply(popGenos, 2, function(x){x %*% beetas})
-#myQpcneutral = calcQpc(popPhenos, myEigsim$vectors, myEigsim$values)
-#plot(myEigsim$vectors[,1], popPhenos, bty="n", xlab = "PC1", ylab ="Sim phenos"
-return(list(phenos = popPhenos))
-})
-
-save(mysims500, file = "data/simFiles/qpc_loci_sims500.rda")
-
 ```
 
 
 Look at the simulations
+
+
+
 ```{r}
 mycol = lacroix_palette('Mango')
 load('data/simFiles/qpc_loci_sims.rda')

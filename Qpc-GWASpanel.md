@@ -16,11 +16,7 @@ This notebook has code for running a form of Q<sub>pc</sub> analysis in a GWAS p
 
 ```r
 #read in the kinship matrix
-#myKold = read.table('data/All_240.nomaf.nomissing.K')
 myK = read.table('data/All_240E.nomaf.nomissing.K')
-
-
-#give it names
 myKnames = read.table('data/240.names', stringsAsFactors = F)$V1
 row.names(myK) = myKnames[1:dim(myK)[1]]
 heatmap(as.matrix(myK), col=viridis(256))
@@ -38,7 +34,7 @@ myLambdas = eigF$values
 bluptable= read.table('data/blups_240', header=T)
 mytraitsnice = sapply(names(bluptable)[-1], function(x){
   strsplit(x, '0607')[[1]][1]
-})
+}) ##neaten up the trait names
 names(bluptable) = c('line',mytraitsnice)
 ```
 
@@ -51,187 +47,22 @@ sumexp = sapply(1:length(varexp), function(x){sum(varexp[1:x])})
 
 #get cutoffs for how many pcs to look at
 pcmax = which(sumexp > 0.3)[1]
-pcmax
-```
 
-```
-## [1] 22
-```
 
-```r
-library(nFactors)
-```
-
-```
-## Loading required package: MASS
-```
-
-```
-## 
-## Attaching package: 'MASS'
-```
-
-```
-## The following object is masked from 'package:dplyr':
-## 
-##     select
-```
-
-```
-## Loading required package: psych
-```
-
-```
-## Loading required package: boot
-```
-
-```
-## 
-## Attaching package: 'boot'
-```
-
-```
-## The following object is masked from 'package:psych':
-## 
-##     logit
-```
-
-```
-## Loading required package: lattice
-```
-
-```
-## 
-## Attaching package: 'lattice'
-```
-
-```
-## The following object is masked from 'package:boot':
-## 
-##     melanoma
-```
-
-```
-## 
-## Attaching package: 'nFactors'
-```
-
-```
-## The following object is masked from 'package:lattice':
-## 
-##     parallel
-```
-
-```r
-myscree = nScree(myLambdas)
-myscree$Components[1]
-```
-
-```
-##   noc
-## 1  24
-```
-
-```r
-library('AssocTests')
-```
-
-```
-## Loading required package: cluster
-```
-
-```
-## Loading required package: mvtnorm
-```
-
-```
-## Loading required package: combinat
-```
-
-```
-## 
-## Attaching package: 'combinat'
-```
-
-```
-## The following object is masked from 'package:utils':
-## 
-##     combn
-```
-
-```
-## Loading required package: fExtremes
-```
-
-```
-## Loading required package: timeDate
-```
-
-```
-## Loading required package: timeSeries
-```
-
-```
-## 
-## Attaching package: 'timeSeries'
-```
-
-```
-## The following object is masked from 'package:psych':
-## 
-##     outlier
-```
-
-```
-## Loading required package: fBasics
-```
-
-```
-## 
-## Attaching package: 'fBasics'
-```
-
-```
-## The following object is masked from 'package:psych':
-## 
-##     tr
-```
-
-```
-## Loading required package: fGarch
-```
-
-```r
-mytw = tw(myLambdas, eigenL = length(myLambdas))
-mytw$SigntEigenL
-```
-
-```
-## [1] 26
-```
-
-```r
-#get cutoffs for how many pcs to look at
-pcmax = which(sumexp > 0.3)[1]
 
 plot(myLambdas, bty="n", xlab = "PCs", ylab = "Eigenvalues")
 abline(v = pcmax, col = viridis(6)[3], lwd=2)
-abline(v = myscree$Components[1], col = viridis(6)[4], lwd=2)
-abline(v = mytw$SigntEigenL, col = viridis(6)[5], lwd=2)
-
-legend('topright',c('30% var explained','Castells rule','Tracy Widom'), col = viridis(6)[3:5], lwd=2, bty="n")
 ```
 
 ![](Qpc-GWASpanel_files/figure-html/pccutoff-1.png)<!-- -->
 
 ```r
 #remove the last end of PCs since these are likely to be extra variable
-tailCutoff = round(.9*length(myLambdas))
+#tailCutoff = round(.9*length(myLambdas))
+tailCutoff=0
 ```
 
-### 3. we can do an 'omnibus' test where we test for excess variation along the first few PCs (based on myRs from above) and compare to variation along lower PCs. This is analagous to comparing btw-pop variation and within-pop variation in a Qst-Fst test.
-
-### 4. We can also test for excess variation along specific PCs.
+### 3. We can test for excess variation along specific PCs.
 
 ```bash
 cat qpctools/R/calcQpc.R
@@ -245,20 +76,22 @@ cat qpctools/R/calcQpc.R
 ## #' @param myU matrix of eigenvectors of the kinship matrix (each column is an eigenvector)
 ## #' @param myLambdas vector of eigenvalues of the kinship matrix 
 ## #' @param myPCcutoff a value that determines how many PCs you want to look at. For example, 0.5 would mean that you would look at the first set of PCs that explain 0.5 of the variation. The default here is 0.3
+## #' @param tailCutoff is there if you don't want to use the last PCs to estimate Va because of excess noise. The default value is 0.9, which means that you're not using the last 10% of your PCs. Set to 1 if you want to use all PCs
+## #' @param vapcs is the number of pcs used to estimate Va. Default is 50.
 ## #' @export
 ## #' @examples
 ## #' calcQpc()
 ## 
-## calcQpc <- function(myZ, myU, myLambdas, myPCcutoff = 0.3){
-##   tailCutoff = round(.9*length(myLambdas))
-##   pcm = which(sapply(1:length(myLambdas), function(x){sum(myLambdas[1:x])/sum(myLambdas)}) > myPCcutoff)[1]
+## calcQpc <- function(myZ, myU, myLambdas, myPCcutoff = 0.3, tailCutoff = 0.9, vapcs = 50){
+##   myTailCutoff = round(tailCutoff*length(myLambdas)) #picks the end of the set of pcs used to calculate va
+##   pcm = which(sapply(1:length(myLambdas), function(x){sum(myLambdas[1:x])/sum(myLambdas)}) > myPCcutoff)[1] #the number of pcs tested
 ##   
-##   myZ = myZ[1:dim(myU)[1]] - mean(myZ)
-##   myCm = (myZ %*% myU)/sqrt(myLambdas)
+##   myZ = myZ[1:dim(myU)[1]] - mean(myZ) #mean center phenotypes
+##   myCm = (myZ %*% myU)/sqrt(myLambdas) #project + standardize by the eigenvalues
 ##   myQm = sapply(1:pcm, function(n){
-##     var0(myCm[n])/var0(myCm[(tailCutoff-50):tailCutoff])
-##   })
-##   myPs = sapply(1:pcm, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
+##     var0(myCm[n])/var0(myCm[(myTailCutoff-vapcs):myTailCutoff])
+##   })  #test for selection
+##   myPs = sapply(1:pcm, function(x){pf(myQm[x], 1, vapcs, lower.tail=F)}) #get a pvalue
 ##   retdf = list(cm = myCm, qm = myQm, pvals = myPs)
 ##   return(retdf)
 ##   }
@@ -271,12 +104,12 @@ cat qpctools/R/calcQpc.R
 
 ```r
 mydfs = apply(bluptable[,-1], 2, function(x){calcQpc(
-  myZ = x, myU = eigF$vectors, myLambdas = eigF$values, myPCcutoff=0.3
+  myZ = x, myU = eigF$vectors, myLambdas = eigF$values, myPCcutoff=0.3, vapcs = 119, tailCutoff = 1
 )})
 ```
 
 
-### 5. Make plots and look at the data
+### 4. Make plots and look at the data
 
 
 ```r
@@ -313,7 +146,7 @@ calcCIs <- function(myName, myBlups=bluptable, myU=eigF$vectors, myLambdas=eigF$
   myZ = myZ - mean(myZ)
   myBm = myZ %*% myU
   myCm = myBm/sqrt(myLambdas)
-  myVa = var0(myCm[(tailCutoff-50):tailCutoff])
+  myVa = var0(myCm[(119):238])
   myCI = sqrt(myVa*myLambdas)
   return(myCI)}
 

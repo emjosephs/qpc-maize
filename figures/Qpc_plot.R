@@ -77,12 +77,24 @@ dev.off()
 
 
 postscript("Supp_fig_pc10.eps",height=7,width=10,paper="special",horizontal=FALSE,colormodel="cymk")
-par(mfrow=c(1,1), par(mar=c(5,7,3,2)))
-#plot(fgmerge$X10, fgmerge$X2, col = as.factor(fgmerge$Subpopulation),
-#     lwd=2, bty="n", xlab = "", ylab = "", cex.lab=1.5, cex=1.5, yaxt="n", 
-#     xaxt = "n", xlim = c(-0.25, 0.25), ylim = c(-0.2, 0.15))
+par(mfrow=c(1,2), par(mar=c(5,7,3,2)))
+plot(fgmerge$X2, fgmerge$DaysToSilk, col = as.factor(fgmerge$Subpopulation),
+     lwd=2, bty="n", xlab = "", ylab = "", cex.lab=1.5, cex=1, yaxt="n", 
+     xaxt = "n")
+axis(1, lwd=2, cex.axis=1.5 )
+axis(2, lwd=2, cex.axis=1.5, las=2)
+#legend("bottomright", levels(as.factor(fgmerge$Subpopulation)), bty="n", pch=1, pt.lwd=2, col = mycol)
+abline(lm(fgmerge$DaysToSilk ~ fgmerge$X2), col='navy', lwd=2)
+abline(a=mean(fgmerge$DaysToSilk), b = 1.96*myCIsDTS[2], lty=2, col="#56B4E9", lwd=2)
+abline(a=mean(fgmerge$DaysToSilk), b = -1.96*myCIsDTS[2], lty=2, col="#56B4E9", lwd=2)
+legend("topleft", nicepops, bty="n", pch=1, pt.lwd=2, col = palette(), cex = 1.2)
+mtext('GWAS panel PC 2', side=1, line = 3, cex=2)
+mtext('Days To Silk', side=2, line = 5, cex=2)
+mtext('A', side=3, adj=0, cex=2, line=0)
+
+
 plot(fgmerge$X10, fgmerge$DaysToSilk, col = as.factor(fgmerge$Subpopulation),
-     lwd=2, bty="n", xlab = "PC 10", ylab = "Days to Silk", cex.lab=1.5, cex=1, yaxt="n", 
+     lwd=2, bty="n", xlab = "", ylab = "", cex.lab=1.5, cex=1, yaxt="n", 
      xaxt = "n")
 axis(1, lwd=2, cex.axis=1.5 )
 axis(2, lwd=2, cex.axis=1.5, las=2)
@@ -93,6 +105,8 @@ abline(a=mean(fgmerge$DaysToSilk), b = -1.96*myCIsDTS[10], lty=2, col="#56B4E9",
 legend("topright", nicepops, bty="n", pch=1, pt.lwd=2, col = palette(), cex = 1.5)
 mtext('GWAS panel PC 10', side=1, line = 3, cex=2)
 mtext('Days To Silk', side=2, line = 5, cex=2)
+mtext('B', side=3, adj=0, cex=2, line=0)
+
 dev.off()
 
 

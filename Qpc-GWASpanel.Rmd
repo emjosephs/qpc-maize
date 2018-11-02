@@ -23,11 +23,7 @@ This notebook has code for running a form of Q<sub>pc</sub> analysis in a GWAS p
 
 ```{r readinandprocessdata}
 #read in the kinship matrix
-#myKold = read.table('data/All_240.nomaf.nomissing.K')
 myK = read.table('data/All_240E.nomaf.nomissing.K')
-
-
-#give it names
 myKnames = read.table('data/240.names', stringsAsFactors = F)$V1
 row.names(myK) = myKnames[1:dim(myK)[1]]
 heatmap(as.matrix(myK), col=viridis(256))
@@ -41,7 +37,7 @@ myLambdas = eigF$values
 bluptable= read.table('data/blups_240', header=T)
 mytraitsnice = sapply(names(bluptable)[-1], function(x){
   strsplit(x, '0607')[[1]][1]
-})
+}) ##neaten up the trait names
 names(bluptable) = c('line',mytraitsnice)
 ```
 
@@ -53,47 +49,31 @@ sumexp = sapply(1:length(varexp), function(x){sum(varexp[1:x])})
 
 #get cutoffs for how many pcs to look at
 pcmax = which(sumexp > 0.3)[1]
-pcmax
-
-library(nFactors)
-myscree = nScree(myLambdas)
-myscree$Components[1]
-
-library('AssocTests')
-mytw = tw(myLambdas, eigenL = length(myLambdas))
-mytw$SigntEigenL
 
 
-#get cutoffs for how many pcs to look at
-pcmax = which(sumexp > 0.3)[1]
 
 plot(myLambdas, bty="n", xlab = "PCs", ylab = "Eigenvalues")
 abline(v = pcmax, col = viridis(6)[3], lwd=2)
-abline(v = myscree$Components[1], col = viridis(6)[4], lwd=2)
-abline(v = mytw$SigntEigenL, col = viridis(6)[5], lwd=2)
-
-legend('topright',c('30% var explained','Castells rule','Tracy Widom'), col = viridis(6)[3:5], lwd=2, bty="n")
 
 #remove the last end of PCs since these are likely to be extra variable
-tailCutoff = round(.9*length(myLambdas))
+#tailCutoff = round(.9*length(myLambdas))
+tailCutoff=0
 ```
 
-### 3. we can do an 'omnibus' test where we test for excess variation along the first few PCs (based on myRs from above) and compare to variation along lower PCs. This is analagous to comparing btw-pop variation and within-pop variation in a Qst-Fst test.
-
-### 4. We can also test for excess variation along specific PCs.
+### 3. We can test for excess variation along specific PCs.
 ```{bash}
 cat qpctools/R/calcQpc.R
 ```
 
 ```{r onepctest}
 mydfs = apply(bluptable[,-1], 2, function(x){calcQpc(
-  myZ = x, myU = eigF$vectors, myLambdas = eigF$values, myPCcutoff=0.3
+  myZ = x, myU = eigF$vectors, myLambdas = eigF$values, myPCcutoff=0.3, vapcs = 119, tailCutoff = 1
 )})
 
 ```
 
 
-### 5. Make plots and look at the data
+### 4. Make plots and look at the data
 
 ```{r summarizeresults}
 
@@ -127,7 +107,7 @@ calcCIs <- function(myName, myBlups=bluptable, myU=eigF$vectors, myLambdas=eigF$
   myZ = myZ - mean(myZ)
   myBm = myZ %*% myU
   myCm = myBm/sqrt(myLambdas)
-  myVa = var0(myCm[(tailCutoff-50):tailCutoff])
+  myVa = var0(myCm[(119):238])
   myCI = sqrt(myVa*myLambdas)
   return(myCI)}
 
