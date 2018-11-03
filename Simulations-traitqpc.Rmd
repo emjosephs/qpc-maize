@@ -59,14 +59,14 @@ pcmax = which(sumexp > 0.3)[1]
 neutQpc <- function(myK,myU,myLambdas, myseed=1,myVa=1, myVe=0){
 set.seed(myseed)
 myZneutral = mvrnorm(n=1, rep(0,dim(myK)[1]), myVa*myK + myVe*diag(dim(myK)[1])) #neutral traits
-myQpcneutral = calcQpc(myZneutral, myU, myLambdas)
+myQpcneutral = calcQpc(myZneutral, myU, myLambdas, tailCutoff=1, vapcs = 119)
 return(myQpcneutral)
 }
 neutQpcVe0 = lapply(1:200, function(x){neutQpc(myK, myU, myLambdas, myseed=x, myVa=1, myVe=0)})#no Ve
 neutQpcVe.1 = lapply(1:200, function(x){neutQpc(myK, myU, myLambdas, myseed=x,myVa=1, myVe=.1)}) #Ve = Va/10
 neutQpcVe.5 = lapply(1:200, function(x){neutQpc(myK, myU, myLambdas, myseed=x,myVa=1, myVe=.5)}) #Ve = Va/2
 
-save(neutQpcVe0,neutQpcVe.1,neutQpcVe.5, tailCutoff, pcmax, file="data/simFiles/Qpc200.rda")
+save(neutQpcVe0,neutQpcVe.1,neutQpcVe.5, pcmax,file="data/simFiles/Qpc200.rda")
 ```
 
 We can measure false positives using the variance of C values (which we expect to be Va under neutrality, which has been set as 1 here)
@@ -74,10 +74,11 @@ We can measure false positives using the variance of C values (which we expect t
 load('data/simFiles/Qpc200.rda')
 mycol = viridis(6)
 
+
 #no Ve
 allCms = sapply(neutQpcVe0, function(x) {x$cm}) #matrix where columns are the Cm values for a given simulation (from PC1 to PC 239)
 allCmVars = apply(allCms, 1, var0) #get variance across all 200 sims for each pc
-plot(allCmVars[1:tailCutoff], bty="n", col = mycol[1], lwd=2, xlab = 'PC', ylab = "var(Cm) with no Ve", xlim = c(0,tailCutoff))
+plot(allCmVars[1:238], bty="n", col = mycol[1], lwd=2, xlab = 'PC', ylab = "var(Cm) with no Ve", xlim = c(0,240))
 
 allPs = sapply(neutQpcVe0, function(x) {x$pvals}) #matrix where columns are the Cm values for a given simulation (from PC1 to PC 239)
 
@@ -93,9 +94,9 @@ allCmVarsVe.1 = apply(allCmsVe.1, 1, var0) #get variance across all 200 sims for
 allCmsVe.5 = sapply(neutQpcVe.5, function(x) {x$cm})
 allCmVarsVe.5 = apply(allCmsVe.5, 1, var0) #get variance across all 200 sims for each pc
 
-plot(allCmVarsVe.5[1:tailCutoff], bty="n", col = mycol[1], lwd=2, xlab = 'PC', ylab = "var(Cm)", xlim = c(0, tailCutoff), ylim=c(0,3.5))
-points(allCmVarsVe.1[1:tailCutoff], col = mycol[3], lwd=2)
-points(allCmVars[1:tailCutoff], col = mycol[5], lwd=2)
+plot(allCmVarsVe.5[1:238], bty="n", col = mycol[1], lwd=2, xlab = 'PC', ylab = "var(Cm)", xlim = c(0, 238), ylim=c(0,3.5))
+points(allCmVarsVe.1[1:238], col = mycol[3], lwd=2)
+points(allCmVars[1:238], col = mycol[5], lwd=2)
 legend('topleft', c('Ve=0','Ve=Va/10','Ve=Va/2'), col = mycol[c(5,3,1)], pch=1, bty="n", pt.lwd=2)
 
 ```
@@ -135,7 +136,7 @@ myKsim = make_k_E(myG) #make a new pop matrix based on the simulated snps
 myEigsim = eigen(myKsim)
 beetas = matrix(c(rnorm(50), rep(0, 10000)), ncol=1, nrow=nloci) 
 popPhenos = apply(popGenos, 2, function(x){x %*% beetas})
-myQpcneutral = calcQpc(popPhenos, myEigsim$vectors, myEigsim$values)
+myQpcneutral = calcQpc(popPhenos, myEigsim$vectors, myEigsim$values, tailCutoff=1, vapcs= 119)
 return(list(phenos = popPhenos, kSim = myKsim, myCms = myQpcneutral$cm))
 })
 

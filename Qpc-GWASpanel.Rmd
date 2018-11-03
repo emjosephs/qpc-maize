@@ -55,8 +55,6 @@ pcmax = which(sumexp > 0.3)[1]
 plot(myLambdas, bty="n", xlab = "PCs", ylab = "Eigenvalues")
 abline(v = pcmax, col = viridis(6)[3], lwd=2)
 
-#remove the last end of PCs since these are likely to be extra variable
-#tailCutoff = round(.9*length(myLambdas))
 tailCutoff=0
 ```
 
