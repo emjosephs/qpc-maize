@@ -9,15 +9,20 @@
 #' @param mysigma the kinship matrix for the combined genotyping and GWAS panels.
 #' @param myLambda a list of eigenvalues of the conditional kinship matrix
 #' @param myU a matrix of eigenvectors of the conditional kinship matrix
+#' @param tailCutoff is there if you don't want to use the last PCs to estimate Va because of excess noise. The default value is 0.9, which means that you're not using the last 10 percent of your PCs. Set to 1 if you want to use all PCs
+#' @param vapcs is the number of pcs used to estimate Va. Default is 50
 #' @export
 
 
-Qpceuro <- function(myI, myM = 906, cutoff=1, gwasPrefix = 'data/263-gwas-results/ldfiltered.assoc.', 
-                    sigPrefix = 'data/263-gwas-results/sigSnpsEuro.', mysigma = myF, mypcmax = pcmax,
-                    myLambda = cEigValues, myU = cEigVectors){ 
+Qpceuro <- function(myI, myM = 906, cutoff=1, 
+	gwasPrefix = 'data/263-gwas-results/ldfiltered.assoc.', 
+        sigPrefix = 'data/263-gwas-results/sigSnpsEuro.',
+	mysigma = myF, mypcmax = pcmax, myLambda = cEigValues, 
+	myU = cEigVectors, tailCutoff=0.9, vapcs=50
+){ 
   
 #remove the last end of PCs 
-tailCutoff = round(.9*myM)
+myTailCutoff = round(tailCutoff*myM) - 1
   
 #generate sigmas
 sigma22 = as.matrix(mysigma[(myM + 1):dim(mysigma)[1],(myM + 1):dim(mysigma)[1]])
@@ -61,9 +66,9 @@ myBm = t(z1 - zcond) %*% as.matrix(myU) #z1 - zcond is the observed - expected u
 #do PC specific test -- here still using Va from the loci effect sizes and frequency
 myCmprime = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(myLambda[x]))})
 myQm = sapply(1:mypcmax, function(n){
-    var0(myCmprime[n])/var0(myCmprime[(tailCutoff-50):tailCutoff])
+    var0(myCmprime[n])/var0(myCmprime[(myTailCutoff-vapcs):myTailCutoff])
   })
-myPsprime = sapply(1:mypcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
+myPsprime = sapply(1:mypcmax, function(x){pf(myQm[x], 1, vapcs, lower.tail=F)})
 
 outList = list(muprime = zcond, bv = z1, cmprime = myCmprime, pprime = myPsprime, n.sites = nrow(combInfo))
 return(outList)

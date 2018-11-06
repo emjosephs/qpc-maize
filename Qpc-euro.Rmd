@@ -79,12 +79,8 @@ cat qpctools/R/QpcEuro.R
 
 
 ```{r runqpc, eval=F}
-qpceuroOut = lapply(1:22,Qpceuro)
+qpceuroOut = lapply(1:22,function(x){Qpceuro(myI = x, vapcs = 906/2, tailCutoff = 1)})
 save(qpceuroOut, file = "data/qpc_euro_output.rda")
-
-
-qpceuroOutStrict = lapply(1:22, function(x){Qpceuro(x, cutoff = 5e-6)})
-save(qpceuroOutStrict, file = "data/qpc_euro_output_strict.rda")
 
 ```
 
@@ -109,26 +105,6 @@ axis(1, at=seq(0,1, length=nrow(pcpvals)), label=1:nrow(pcpvals))
 axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
 legend(-0.2,-0.15, c('P value',levels(mysig2)), fill=c('white',mycol), border=c('white',rep('black',5)), bty="n", horiz=T)
 
-
-load('data/qpc_euro_output_strict.rda')
-
-pcpvalsstrict = sapply(qpceuroOutStrict, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
-allqvalsstrict = get_q_values(pcpvalsstrict)
-
-layout(matrix(1, nrow=1, ncol=1))
-mysig2 =  cut((1:1000/1000), c(0,0.001,0.01,0.05,0.1,1)) #for legend
-par(mar=c(8,14,2,2), xpd=TRUE, mfrow=c(1,1))
-mycol = c(viridis(6, direction=1)[1:4], "white")
-image(allqvalsstrict, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
-axis(1, at=seq(0,1, length=nrow(pcpvalsstrict)), label=1:nrow(pcpvalsstrict))
-axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
-legend(-0.2,-0.15, c('FDR',levels(mysig2)), fill=c('white',mycol), border=c('white',rep('black',5)), bty="n", horiz=T)
-
-image(pcpvalsstrict, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
-axis(1, at=seq(0,1, length=nrow(pcpvalsstrict)), label=1:nrow(pcpvalsstrict))
-axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
-legend(-0.2,-0.15, c('P value',levels(mysig2)), fill=c('white',mycol), border=c('white',rep('black',5)), bty="n", horiz=T)
-
 ```
 
 
@@ -144,7 +120,7 @@ cat qpctools/R/QpcEuro-nocond.R
 load('data/euroOnlyK.rda')
 
 ### function for running Qpc on European polygenic scores without the conditional test
-ncEuroOut = lapply(1:22,Qpceuro_nocond)
+ncEuroOut = lapply(1:22,function(x){Qpceuro_nocond(myI = x, vapcs = 906/2, tailCutoff = 1)})
 save(ncEuroOut, file="data/qpc-euro-nc.rda")
 
 ```
@@ -171,7 +147,7 @@ axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
 legend(-0.2,-0.15, c('P value',levels(mysig2)), fill=c('white',mycol), border=c('white',rep('black',5)), bty="n", horiz=T)
 
 
-````
+```
 
 
 ```{r latdata, eval=F, include=F}

@@ -40,7 +40,7 @@ xcords = seq(0,1,length=dim(qvalsprime)[1])
 #plot stuff
 
 postscript("Qxpc_euro.eps",height=8,width=16,paper="special",horizontal=FALSE,colormodel="cymk")
-png("Qxpc_euro.png", height=600, width=1200)
+#png("Qxpc_euro.png", height=600, width=1200)
 
 par(mar=c(10,14,5,3), xpd=TRUE, mfrow=c(1,1), cex.axis=1.5, cex.lab=2)
 layout(

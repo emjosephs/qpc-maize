@@ -232,15 +232,20 @@ cat qpctools/R/QpcEuro.R
 ## #' @param mysigma the kinship matrix for the combined genotyping and GWAS panels.
 ## #' @param myLambda a list of eigenvalues of the conditional kinship matrix
 ## #' @param myU a matrix of eigenvectors of the conditional kinship matrix
+## #' @param tailCutoff is there if you don't want to use the last PCs to estimate Va because of excess noise. The default value is 0.9, which means that you're not using the last 10 percent of your PCs. Set to 1 if you want to use all PCs
+## #' @param vapcs is the number of pcs used to estimate Va. Default is 50
 ## #' @export
 ## 
 ## 
-## Qpceuro <- function(myI, myM = 906, cutoff=1, gwasPrefix = 'data/263-gwas-results/ldfiltered.assoc.', 
-##                     sigPrefix = 'data/263-gwas-results/sigSnpsEuro.', mysigma = myF, mypcmax = pcmax,
-##                     myLambda = cEigValues, myU = cEigVectors){ 
+## Qpceuro <- function(myI, myM = 906, cutoff=1, 
+## 	gwasPrefix = 'data/263-gwas-results/ldfiltered.assoc.', 
+##         sigPrefix = 'data/263-gwas-results/sigSnpsEuro.',
+## 	mysigma = myF, mypcmax = pcmax, myLambda = cEigValues, 
+## 	myU = cEigVectors, tailCutoff=0.9, vapcs=50
+## ){ 
 ##   
 ## #remove the last end of PCs 
-## tailCutoff = round(.9*myM)
+## myTailCutoff = round(tailCutoff*myM) - 1
 ##   
 ## #generate sigmas
 ## sigma22 = as.matrix(mysigma[(myM + 1):dim(mysigma)[1],(myM + 1):dim(mysigma)[1]])
@@ -284,9 +289,9 @@ cat qpctools/R/QpcEuro.R
 ## #do PC specific test -- here still using Va from the loci effect sizes and frequency
 ## myCmprime = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(myLambda[x]))})
 ## myQm = sapply(1:mypcmax, function(n){
-##     var0(myCmprime[n])/var0(myCmprime[(tailCutoff-50):tailCutoff])
+##     var0(myCmprime[n])/var0(myCmprime[(myTailCutoff-vapcs):myTailCutoff])
 ##   })
-## myPsprime = sapply(1:mypcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
+## myPsprime = sapply(1:mypcmax, function(x){pf(myQm[x], 1, vapcs, lower.tail=F)})
 ## 
 ## outList = list(muprime = zcond, bv = z1, cmprime = myCmprime, pprime = myPsprime, n.sites = nrow(combInfo))
 ## return(outList)
@@ -297,7 +302,7 @@ cat qpctools/R/QpcEuro.R
 
 
 ```r
-qpceuroOut = lapply(1:22,Qpceuro)
+qpceuroOut = lapply(1:22,function(x){Qpceuro(myI = x, vapcs = 906/2, tailCutoff = 1)})
 save(qpceuroOut, file = "data/qpc_euro_output.rda")
 ```
 
@@ -350,16 +355,21 @@ cat qpctools/R/QpcEuro-nocond.R
 ## #' @param mysigma the kinship matrix for the genotyping panel.
 ## #' @param myLambda a list of eigenvalues of the genotyping panel kinship matrix
 ## #' @param myU a matrix of eigenvectors of the genotyping panel kinship matrix
+## #' @param tailCutoff is there if you don't want to use the last PCs to estimate Va because of excess noise. The default value is 0.9, which means that you're not using the last 10 percent of your PCs. Set to 1 if you want to use all PCs
+## #' @param vapcs is the number of pcs used to estimate Va. Default is 50
 ## #' @export
 ## 
 ## 
 ## 
 ## Qpceuro_nocond <- function(myI, myM = 906, gwasPrefix = "data/263-gwas-results/ldfiltered.assoc.", 
 ##     sigPrefix = "data/263-gwas-results/sigSnpsEuro.", mysigma = euroOnlyF, 
-##     mypcmax = pcmax, myU = euroOnlyeigen$vectors, myLambdas = euroOnlyeigen$values)
+##     mypcmax = pcmax, myU = euroOnlyeigen$vectors, myLambdas = euroOnlyeigen$values,
+##     tailCutoff=0.9, vapcs = 50
+## 
+## )
 ##   {
 ##   
-## tailCutoff = round(0.9 * myM)
+## myTailCutoff = round(tailCutoff * myM) - 1
 ## 
 ## #read in data
 ## gwasHits = read.table(paste(gwasPrefix,myI,sep=""), stringsAsFactors=F) #gwas results
@@ -388,9 +398,9 @@ cat qpctools/R/QpcEuro-nocond.R
 ## #do Qpc
 ## myCmprime = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(myLambdas[x]))})
 ## myQm = sapply(1:mypcmax, function(n){
-##     var0(myCmprime[n])/var0(myCmprime[(tailCutoff-50):tailCutoff])
+##     var0(myCmprime[n])/var0(myCmprime[(myTailCutoff-vapcs):myTailCutoff])
 ##   })
-## myPsprime = sapply(1:mypcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
+## myPsprime = sapply(1:mypcmax, function(x){pf(myQm[x], 1, vapcs, lower.tail=F)})
 ## 
 ## outList = list(cmprime = myCmprime, pprime = myPsprime, n.sites = nrow(combInfo))
 ## return(outList)
@@ -405,7 +415,7 @@ cat qpctools/R/QpcEuro-nocond.R
 load('data/euroOnlyK.rda')
 
 ### function for running Qpc on European polygenic scores without the conditional test
-ncEuroOut = lapply(1:22,Qpceuro_nocond)
+ncEuroOut = lapply(1:22,function(x){Qpceuro_nocond(myI = x, vapcs = 906/2, tailCutoff = 1)})
 save(ncEuroOut, file="data/qpc-euro-nc.rda")
 ```
 

@@ -130,7 +130,7 @@ set.seed(i)
 ancPop = runif(nloci, min=0, max=1) #ancestral allele frequenices
 presentPops1 = sapply(ancPop, function(x){mvrnorm(n=1, mu = rep(x,239), x*(1-x)*myK)})
 presentPops = apply(presentPops1, c(1,2), myBound) #deal with numbers greater or less than 0 (the outer bounds are sticky)
-popGenos = sapply(1:239, function(x) getPopGenos(x, presentPops, 1)) # matrix where each row is a SNP and each column is an individual
+popGenos = sapply(1:239, function(x) getPopGenos(x, presentPops, 1)) # matrix where each row is a SNP and each column is an individual
 myG = t(popGenos[501:100500,])/2#snps used to make K matrix
 myKsim = make_k_E(myG) #make a new pop matrix based on the simulated snps
 myEigsim = eigen(myKsim)

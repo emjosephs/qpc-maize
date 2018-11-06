@@ -1,6 +1,6 @@
 #' Calculate Qpc on Ames panel
 #'
-#' This function calculates Qpc on Ames panel.
+#' This function calculates non-conditional Qpc on Ames panel.
 #' @param myI the trait number that we're looking at
 #' @param myM the number of lines in the genotyping panel
 #' @param gwasPrefix path prefix for the GWAS results
@@ -9,12 +9,17 @@
 #' @param mysigma the kinship matrix for the genotyping panel.
 #' @param myLambda a list of eigenvalues of the genotyping panel kinship matrix
 #' @param myU a matrix of eigenvectors of the genotyping panel kinship matrix
+#' @param tailCutoff is there if you don't want to use the last PCs to estimate Va because of excess noise. The default value is 0.9, which means that you're not using the last 10 percent of your PCs. Set to 1 if you want to use all PCs
+#' @param vapcs is the number of pcs used to estimate Va. Default is 50
 #' @export
 
-Qpcames_nocond <- function(myI, myM = 2704, gwasPrefix = 'data/281-gwas-results/ldfiltered.', sigPrefix='data/281-gwas-results/sigSnps.',
-                           mypcmax = pcmax, myU = amesEig$vectors, myLambda = amesEig$values)
-  {
-  tailCutoff = round(0.9 * myM)
+Qpcames_nocond <- function(myI, myM = 2704, gwasPrefix = 'data/281-gwas-results/ldfiltered.', 
+	sigPrefix='data/281-gwas-results/sigSnps.',
+        mypcmax = pcmax, myU = amesEig$vectors, myLambda = amesEig$values,
+	tailCutoff = 0.9, vapcs = 50
+
+){
+ myTailCutoff = round(tailCutoff * myM) - 1
   
 #read in data
 gwasHits = read.table(paste(gwasPrefix,myI,sep=""), stringsAsFactors=F)
@@ -39,9 +44,9 @@ myBm = t(allZ) %*% myU
 
 myCmprime = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(myLambda[x]))})
 myQm = sapply(1:mypcmax, function(n){
-    var0(myCmprime[n])/var0(myCmprime[(tailCutoff-50):tailCutoff])
+    var0(myCmprime[n])/var0(myCmprime[(myTailCutoff-vapcs):myTailCutoff])
   })
-myPsprime = sapply(1:mypcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
+myPsprime = sapply(1:mypcmax, function(x){pf(myQm[x], 1, vapcs, lower.tail=F)})
 
 outList = list(muprime = allZ, cmprime = myCmprime, pprime = myPsprime)
 return(outList)

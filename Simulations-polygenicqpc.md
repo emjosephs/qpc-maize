@@ -189,6 +189,7 @@ sigma12 = as.matrix(ames281[1:2704,2705:2984])
 sigma21 = as.matrix(ames281[2705:2984,1:2704])
 sigma22 = as.matrix(ames281[2705:2984,2705:2984]) #we are dropping the last row
 sigma.cond = sigma11 - sigma12 %*% solve(sigma22) %*% sigma21 
+pcmax = 182
 
 #run the test with same function used for real data (in Qpc-ames.md)
 camesOut = lapply(1:200,function(x) {Qpcames(myI = x, gwasPrefix = 'data/simFiles/ldfiltered.assoc.', sigPrefix = 'data/simFiles/sigSnps.ames.', mypcmax = 100,

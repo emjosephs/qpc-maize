@@ -22,6 +22,7 @@ prop05 <- function(pvals){apply(pvals, 1, function(x){sum(x< 0.05)/length(x)})}
 propPs = prop05(allPs)
 
 #estimate Va
+tailCutoff=238
 allVa = apply(allCms, 2, function(x){var0(x[(tailCutoff-50):tailCutoff])})
 allVa.1 = apply(allCmsVe.1, 2, function(x){var0(x[(tailCutoff-50):tailCutoff])})
 allVa.5 = apply(allCmsVe.5, 2, function(x){var0(x[(tailCutoff-50):tailCutoff])})
@@ -31,7 +32,7 @@ postscript("Ve_sims.eps",height=8,width=16,paper="special",horizontal=FALSE,colo
 par(mfrow = c(1,2), cex.lab = 1.5, cex.axis=1.5, mar = c(6,6,4,2))
 #var of cms
 plot(-10,-10, bty="n", xlab = 'PC', ylab = "", xlim = c(0, tailCutoff), ylim=c(0,3.5), yaxt = "n")
-rect(xleft = tailCutoff-50, ybottom = 0, xright= tailCutoff, ytop = 4,col = mycol[3], border="NA")
+rect(xleft = tailCutoff-119, ybottom = 0, xright= tailCutoff, ytop = 4,col = mycol[3], border="NA")
 axis(2, las=2)
 mtext("Var(Cm)", side=2, line=4, cex=1.5)
 points(allCmVarsVe.5[1:tailCutoff], col = mycol[4], lwd=2)

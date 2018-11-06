@@ -232,7 +232,8 @@ legend('topright',c('30% var explained','Castells rule','Tracy Widom'), col = vi
 
 ```r
 #remove the last end of PCs 
-tailCutoff = round(.9*length(cEigValues))
+#tailCutoff = round(.9*length(cEigValues))
+tailCutoff = length(cEigValues)
 ```
 
 
@@ -256,16 +257,21 @@ cat qpctools/R/QpcAmes.R
 ## #' @param mysigma the kinship matrix for the combined genotyping and GWAS panels.
 ## #' @param myLambda a list of eigenvalues of the conditional kinship matrix
 ## #' @param myU a matrix of eigenvectors of the conditional kinship matrix
+## #' @param tailCutoff is there if you don't want to use the last PCs to estimate Va because of excess noise. The default value is 0.9, which means that you're not using the last 10 percent of your PCs. Set to 1 if you want to use all PCs
+## #' @param vapcs is the number of pcs used to estimate Va. Default is 50
 ## #' @export
 ## 
 ## 
-## Qpcames <- function(myI, myM = 2704, gwasPrefix = 'data/281-gwas-results/ldfiltered.', sigPrefix='data/281-gwas-results/sigSnps.',
-##                     mysigma=myF, mypcmax = pcmax, myLambda = cEigValues, myU = cEigVectors){
+## Qpcames <- function(myI, myM = 2704, gwasPrefix = 'data/281-gwas-results/ldfiltered.', 
+## 	sigPrefix='data/281-gwas-results/sigSnps.',
+##         mysigma=myF, mypcmax = pcmax, myLambda = cEigValues, 
+## 	myU = cEigVectors, tailCutoff = 0.9, vapcs = 50
+## ){
 ## 
 ## #calculate matrices
 ## sigma22 = as.matrix(mysigma[(myM + 1):dim(mysigma)[1], (myM + 1):dim(mysigma)[1]])
 ## sigma12 = as.matrix(myF[1:myM, (myM + 1):dim(mysigma)[1]])
-## tailCutoff = round(myM*0.9)
+## myTailCutoff = round(myM*tailCutoff) - 1 #lose one because of dropping last individual due to mean centering
 ## 
 ## #read in data
 ## gwasHits = read.table(paste(gwasPrefix,myI,sep=""), stringsAsFactors=F)
@@ -294,9 +300,9 @@ cat qpctools/R/QpcAmes.R
 ## 
 ## myCmprime = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(myLambda[x]))})
 ## myQm = sapply(1:mypcmax, function(n){
-##     var0(myCmprime[n])/var0(myCmprime[(tailCutoff-50):tailCutoff])
+##     var0(myCmprime[n])/var0(myCmprime[(myTailCutoff-vapcs):myTailCutoff])
 ##   })
-## myPsprime = sapply(1:mypcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
+## myPsprime = sapply(1:mypcmax, function(x){pf(myQm[x], 1, vapcs, lower.tail=F)})
 ## 
 ## outList = list(muprime = zcond, cmprime = myCmprime, pprime = myPsprime)
 ## return(outList)
@@ -305,8 +311,10 @@ cat qpctools/R/QpcAmes.R
 
 
 
+
+
 ```r
-qpcamesOut = lapply(traitNames,Qpcames)
+qpcamesOut = lapply(traitNames,function(x){Qpcames(myI = x, tailCutoff=1, vapcs = 1352)})
 save(qpcamesOut, file='data/qpc-ames-output.rda')
 ```
 
@@ -359,7 +367,7 @@ cat qpctools/R/QpcAmes-nocond.R
 ```
 ## #' Calculate Qpc on Ames panel
 ## #'
-## #' This function calculates Qpc on Ames panel.
+## #' This function calculates non-conditional Qpc on Ames panel.
 ## #' @param myI the trait number that we're looking at
 ## #' @param myM the number of lines in the genotyping panel
 ## #' @param gwasPrefix path prefix for the GWAS results
@@ -368,12 +376,17 @@ cat qpctools/R/QpcAmes-nocond.R
 ## #' @param mysigma the kinship matrix for the genotyping panel.
 ## #' @param myLambda a list of eigenvalues of the genotyping panel kinship matrix
 ## #' @param myU a matrix of eigenvectors of the genotyping panel kinship matrix
+## #' @param tailCutoff is there if you don't want to use the last PCs to estimate Va because of excess noise. The default value is 0.9, which means that you're not using the last 10 percent of your PCs. Set to 1 if you want to use all PCs
+## #' @param vapcs is the number of pcs used to estimate Va. Default is 50
 ## #' @export
 ## 
-## Qpcames_nocond <- function(myI, myM = 2704, gwasPrefix = 'data/281-gwas-results/ldfiltered.', sigPrefix='data/281-gwas-results/sigSnps.',
-##                            mypcmax = pcmax, myU = amesEig$vectors, myLambda = amesEig$values)
-##   {
-##   tailCutoff = round(0.9 * myM)
+## Qpcames_nocond <- function(myI, myM = 2704, gwasPrefix = 'data/281-gwas-results/ldfiltered.', 
+## 	sigPrefix='data/281-gwas-results/sigSnps.',
+##         mypcmax = pcmax, myU = amesEig$vectors, myLambda = amesEig$values,
+## 	tailCutoff = 0.9, vapcs = 50
+## 
+## ){
+##  myTailCutoff = round(tailCutoff * myM) - 1
 ##   
 ## #read in data
 ## gwasHits = read.table(paste(gwasPrefix,myI,sep=""), stringsAsFactors=F)
@@ -398,9 +411,9 @@ cat qpctools/R/QpcAmes-nocond.R
 ## 
 ## myCmprime = sapply(1:(myM-1), function(x){t(myBm[,x]/sqrt(myLambda[x]))})
 ## myQm = sapply(1:mypcmax, function(n){
-##     var0(myCmprime[n])/var0(myCmprime[(tailCutoff-50):tailCutoff])
+##     var0(myCmprime[n])/var0(myCmprime[(myTailCutoff-vapcs):myTailCutoff])
 ##   })
-## myPsprime = sapply(1:mypcmax, function(x){pf(myQm[x], 1, 50, lower.tail=F)})
+## myPsprime = sapply(1:mypcmax, function(x){pf(myQm[x], 1, vapcs, lower.tail=F)})
 ## 
 ## outList = list(muprime = allZ, cmprime = myCmprime, pprime = myPsprime)
 ## return(outList)
@@ -413,7 +426,7 @@ cat qpctools/R/QpcAmes-nocond.R
 #
 load('data/amesOnly.eig.rda')
 
-ncamesOut = lapply(traitNames, Qpcames_nocond)
+ncamesOut = lapply(traitNames, function(x){Qpcames_nocond(myI = x, tailCutoff=1, vapcs = 1352)})
 save(ncamesOut, file = 'data/qpc-ames-nc.rda')
 ```
 
@@ -424,7 +437,7 @@ load('data/qpc-ames-nc.rda')
 ncpvals = sapply(ncamesOut, function(x) {x$pprime}) #matrix, rows are pvals, columns are traits
 ncqvals = get_q_values(ncpvals)
 
-## TODO FIX AXES
+
 #mysig = apply(allqvals, 2, function(x){ cut(x, c(0,0.001,0.01,0.05,0.1,1), labels=F)})
 layout(matrix(1, nrow=1, ncol=1))
 mysig2 =  cut((1:1000/1000), c(0,0.001,0.01,0.05,0.1,1)) #for legend
@@ -436,7 +449,7 @@ axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
 legend(-0.2,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
 ```
 
-![](Qpc-ames_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+![](Qpc-ames_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
 
 ```r
 image(ncpvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
@@ -446,7 +459,7 @@ axis(2, at=(0:21)/21, labels = niceTraitnames, las=2)
 legend(-0.2,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
 ```
 
-![](Qpc-ames_files/figure-html/unnamed-chunk-3-2.png)<!-- -->
+![](Qpc-ames_files/figure-html/unnamed-chunk-4-2.png)<!-- -->
 
 ```r
 save(qpcamesOut, allqvals, niceTraitnames, ncqvals, ncamesOut, file="data/ames_qpc_data.rda")
