@@ -152,3 +152,53 @@ abline(a=mean(fgmerge$DaysToSilk), b = -1.96*myCIsDTS[3], lty=2, col=viridis(6)[
 
 
 ```
+
+
+Checking the sensitivity to choice of PCs.
+
+
+```{r}
+## try with all PCS below the cutoff 
+mydfsAllpcs = apply(bluptable[,-1], 2, function(x){calcQpc(
+  myZ = x, myU = eigF$vectors, myLambdas = eigF$values, myPCcutoff=0.3, vapcs = 217, tailCutoff = 1
+)})
+
+allpvalsAllpcs = sapply(1:22, function(x){mydfsAllpcs[[x]]$pvals})
+myqvalsAllpcs = getqvalues(allpvalsAllpcs)
+
+#use only 50 PCs
+mydfs50pcs = apply(bluptable[,-1], 2, function(x){calcQpc(
+  myZ = x, myU = eigF$vectors, myLambdas = eigF$values, myPCcutoff=0.3, vapcs = 50, tailCutoff = 1
+)})
+
+allpvals50pcs = sapply(1:22, function(x){mydfs50pcs[[x]]$pvals})
+myqvals50pcs = getqvalues(allpvals50pcs)
+
+
+layout(matrix(1, nrow=1, ncol=1))
+mysig2 =  cut((1:1000/1000), c(0,0.001,0.01,0.05,0.1,1)) #for legend
+par(mar=c(8,10,2,2), xpd=TRUE, mfrow=c(1,1), mfrow=c(1,3))
+mycol = c(viridis(6, direction=1)[1:4], "white")
+
+## changing the number of PCs used
+image(myqvalsAllpcs, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
+axis(1, at=seq(0,1, length=pcmax), las=2, label=1:pcmax)
+axis(2, at=(0:21)/21, labels = mytraitsnice, las=2)
+legend(-0.2,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
+
+image(myqvals, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
+axis(1, at=seq(0,1, length=pcmax), las=2, label=1:pcmax)
+axis(2, at=(0:21)/21, labels = mytraitsnice, las=2)
+legend(-0.2,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
+
+image(myqvals50pcs, col=mycol, xaxt="n", yaxt="n", bty="n", breaks=c(0,0.001,0.01,0.05,0.1,1))
+axis(1, at=seq(0,1, length=pcmax), las=2, label=1:pcmax)
+axis(2, at=(0:21)/21, labels = mytraitsnice, las=2)
+legend(-0.2,-0.15, levels(mysig2), fill=mycol, bty="n", horiz=T)
+
+save(allpvals50pcs, allpvalsAllpcs, allpvals, myqvalsAllpcs, myqvals50pcs, myqvals, pcmax, mytraitsnice, file = "data/changingVaPCresults.rda")
+
+
+```
+
+
