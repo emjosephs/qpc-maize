@@ -134,16 +134,15 @@ sumexp = sapply(1:length(varexp), function(x){sum(varexp[1:x])})
 #get cutoffs for omnibus statistic
 #myRs = c(which(sumexp > .05)[1], which(sumexp > .3)[1])
 pcmax = which(sumexp > 0.3)[1]
-tailCutoff = round(.9*myM)
 
 
-ceuroOut_power01 = lapply(1:200,function(x){Qpceuro(x, myM = 906, sigPrefix = 'data/simFiles/powerSimAlleles.0.01.table.', gwasPrefix= 'data/simFiles/ldfiltered.euro.assoc.', mysigma = euro282, mypcmax = pcmax, myLambda = condEig$values, myU = condEig$vectors)})
+ceuroOut_power01 = lapply(1:200,function(x){Qpceuro(x, myM = 906, sigPrefix = 'data/simFiles/powerSimAlleles.0.01.table.', gwasPrefix= 'data/simFiles/ldfiltered.euro.assoc.', mysigma = euro282, mypcmax = pcmax, myLambda = condEig$values, myU = condEig$vectors, tailCutoff=1, vapcs = 453)})
 save(ceuroOut_power01, file='data/simFiles/ceuroOut_200_power01') 
 
-ceuroOut_power05 = lapply(1:200,function(x){Qpceuro(x, myM = 906, sigPrefix = 'data/simFiles/powerSimAlleles.0.05.table.', gwasPrefix= 'data/simFiles/ldfiltered.euro.assoc.', mysigma = euro282, mypcmax = pcmax, myLambda = condEig$values, myU = condEig$vectors)})
+ceuroOut_power05 = lapply(1:200,function(x){Qpceuro(x, myM = 906, sigPrefix = 'data/simFiles/powerSimAlleles.0.05.table.', gwasPrefix= 'data/simFiles/ldfiltered.euro.assoc.', mysigma = euro282, mypcmax = pcmax, myLambda = condEig$values, myU = condEig$vectors, tailCutoff=1, vapcs = 453)})
 save(ceuroOut_power05, file='data/simFiles/ceuroOut_200_power05') 
 
-ceuroOut_power005 = lapply(1:200,function(x){Qpceuro(x, myM = 906, sigPrefix = 'data/simFiles/powerSimAlleles.0.005.table.', gwasPrefix= 'data/simFiles/ldfiltered.euro.assoc.', mysigma = euro282, mypcmax = pcmax, myLambda = condEig$values, myU = condEig$vectors)})
+ceuroOut_power005 = lapply(1:200,function(x){Qpceuro(x, myM = 906, sigPrefix = 'data/simFiles/powerSimAlleles.0.005.table.', gwasPrefix= 'data/simFiles/ldfiltered.euro.assoc.', mysigma = euro282, mypcmax = pcmax, myLambda = condEig$values, myU = condEig$vectors, tailCutoff=1, vapcs = 453)})
 save(ceuroOut_power005, file='data/simFiles/ceuroOut_200_power005') 
 
 ```
