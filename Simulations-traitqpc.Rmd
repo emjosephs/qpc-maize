@@ -83,6 +83,8 @@ plot(allCmVars[1:238], bty="n", col = mycol[1], lwd=2, xlab = 'PC', ylab = "var(
 allPs = sapply(neutQpcVe0, function(x) {x$pvals}) #matrix where columns are the Cm values for a given simulation (from PC1 to PC 239)
 
 count_sig = sapply(1:pcmax, function(x){sum(allPs[x,]<=0.05)})
+sum(count_sig)
+sum(count_sig)/length(c(allPs))
 ```
 
 Without any V<sub>e</sub>, the variance of C<sub>m<sub> is centered around 1, as expected under neutrality. What happpens when we add V<sub>e</sub>?
