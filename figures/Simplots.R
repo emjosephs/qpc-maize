@@ -30,9 +30,8 @@ myEig = eigen(sigma11)
 simcors = sapply(1:200, function(x){
   simTraits = myTraits[1,x]$simT[1:906]
   simTraits = simTraits - mean(simTraits)
-  tailCutoff = round(.9*length(myEig$values))
   myCm = (simTraits %*% myEig$vectors)/sqrt(myEig$values)
-  myVa = var0(myCm[(tailCutoff-50:tailCutoff)])
+  myVa = var0(myCm[(length(myEig$values)/2):length(myEig$values)])
   simcor = lm(simTraits/sqrt(myVa) ~ myEig$vectors[,1])
   return(simcor)
 })
@@ -40,9 +39,8 @@ simcors = sapply(1:200, function(x){
 gwascors = sapply(1:200, function(x){
   gwasTraits = myTraits[2,x]$gwasT[1:906]
   gwasTraits = gwasTraits- mean(gwasTraits)
-  tailCutoff = round(.9*length(myEig$values))
   myCm = (gwasTraits %*% myEig$vectors)/sqrt(myEig$values)
-  myVa = var0(myCm[(tailCutoff-50:tailCutoff)])
+  myVa = var0(myCm[(length(myEig$values)/2):length(myEig$values)])
    gwascor = lm(gwasTraits/sqrt(myVa) ~ myEig$vectors[,1])
   return(gwascor)
 })
@@ -51,6 +49,22 @@ myCm1Gwas = ((myTraits[2,1]$gwasT[1:906] - mean(myTraits[2,1]$gwasT[1:906])) %*%
 myGwasTrait1 = (myTraits[2,1]$gwasT[1:906] - mean(myTraits[2,1]$gwasT[1:906]))/sqrt(var0(myCm1Gwas[(765:815)]))
 myCm1Sim = ((myTraits[1,1]$simT[1:906] - mean(myTraits[1,1]$simT[1:906])) %*% myEig$vectors)/sqrt(myEig$values)
 mySimTrait1 = (myTraits[1,1]$simT[1:906] - mean(myTraits[1,1]$simT[1:906]))/sqrt(var0(myCm1Sim[(765:815)]))
+
+simVa = sapply(1:200, function(x){
+  simTraits = myTraits[1,x]$simT[1:906]
+  simTraits = simTraits- mean(simTraits)
+  myCm = (simTraits %*% myEig$vectors)/sqrt(myEig$values)
+  myVa = var0(myCm[(length(myEig$values)/2):length(myEig$values)])
+  return(myVa)
+  })
+
+gwasVa = sapply(1:200, function(x){
+  gwasTraits = myTraits[2,x]$gwasT[1:906]
+  gwasTraits = gwasTraits- mean(gwasTraits)
+  myCm = (gwasTraits %*% myEig$vectors)/sqrt(myEig$values)
+  myVa = var0(myCm[(length(myEig$values)/2):length(myEig$values)])
+  return(myVa)
+})
 
 
 postscript("Simplot.eps",height=8,width=8,paper="special",horizontal=FALSE,colormodel="cymk")

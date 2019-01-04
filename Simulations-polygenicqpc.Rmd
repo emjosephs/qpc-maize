@@ -284,6 +284,9 @@ axis(1, at = test[1,]+ 0.5, lab = 1:10, cex=1.5)
 legend('topleft', c('Europe Non-conditional test', 'Europe Conditional test'), fill = mycol[c(4,6)], border="white", bty="n")
 
 
+
+
+
 ### 50 SNPs
 load('data/simFiles/qxpc_nc_ames50_200.rda') #ncamesOut
 load('data/simFiles/qxpc_nc_euro50_200.rda') #nceuroOut
