@@ -67,6 +67,7 @@ neutQpcVe.1 = lapply(1:200, function(x){neutQpc(myK, myU, myLambdas, myseed=x,my
 neutQpcVe.5 = lapply(1:200, function(x){neutQpc(myK, myU, myLambdas, myseed=x,myVa=1, myVe=.5)}) #Ve = Va/2
 
 save(neutQpcVe0,neutQpcVe.1,neutQpcVe.5, pcmax,file="data/simFiles/Qpc200.rda")
+
 ```
 
 We can measure false positives using the variance of C values (which we expect to be Va under neutrality, which has been set as 1 here)
@@ -89,7 +90,7 @@ sum(count_sig)/length(c(allPs))
 
 Without any V<sub>e</sub>, the variance of C<sub>m<sub> is centered around 1, as expected under neutrality. What happpens when we add V<sub>e</sub>?
 
-```{r}
+```{r, eval=F}
 #adding Ve
 allCmsVe.1 = sapply(neutQpcVe.1, function(x) {x$cm})
 allCmVarsVe.1 = apply(allCmsVe.1, 1, var0) #get variance across all 200 sims for each pc
@@ -99,6 +100,37 @@ allCmVarsVe.5 = apply(allCmsVe.5, 1, var0) #get variance across all 200 sims for
 plot(allCmVarsVe.5[1:238], bty="n", col = mycol[1], lwd=2, xlab = 'PC', ylab = "var(Cm)", xlim = c(0, 238), ylim=c(0,3.5))
 points(allCmVarsVe.1[1:238], col = mycol[3], lwd=2)
 points(allCmVars[1:238], col = mycol[5], lwd=2)
+legend('topleft', c('Ve=0','Ve=Va/10','Ve=Va/2'), col = mycol[c(5,3,1)], pch=1, bty="n", pt.lwd=2)
+
+```
+
+Oops, previous code had a factor of 2 error. Here is updated code:
+```{r, eval=F}
+neutQpc2 <- function(myK,myU,myLambdas, myseed=1,myVa=1, myVe=0){
+set.seed(myseed)
+myZneutral = mvrnorm(n=1, rep(0,dim(myK)[1]), 2*myVa*myK + myVe*diag(dim(myK)[1])) #neutral traits
+myQpcneutral = calcQpc(myZneutral, myU, myLambdas, tailCutoff=1, vapcs = 119)
+return(myQpcneutral)
+}
+neutQpcVe0.2 = lapply(1:200, function(x){neutQpc2(myK, myU, myLambdas, myseed=x, myVa=1, myVe=0)})#no Ve
+neutQpcVe.1.2 = lapply(1:200, function(x){neutQpc2(myK, myU, myLambdas, myseed=x,myVa=1, myVe=.1)}) #Ve = Va/10
+neutQpcVe.5.2 = lapply(1:200, function(x){neutQpc2(myK, myU, myLambdas, myseed=x,myVa=1, myVe=.5)}) #Ve = Va/2
+save(neutQpcVe0.2,neutQpcVe.1.2,neutQpcVe.5.2, pcmax,file="data/simFiles/Qpc200.2.rda")
+
+```
+
+```{r}
+load("data/simFiles/Qpc200.2.rda")
+allCms.2 = sapply(neutQpcVe0.2, function(x) {x$cm}) #matrix where columns are the Cm values for a given simulation (from PC1 to PC 239)
+allCmVars.2 = apply(allCms.2, 1, var0) #get variance across all 200 sims for each pc
+allCmsVe.1.2 = sapply(neutQpcVe.1.2, function(x) {x$cm})
+allCmVarsVe.1.2 = apply(allCmsVe.1.2, 1, var0) #get variance across all 200 sims for each pc
+allCmsVe.5.2 = sapply(neutQpcVe.5.2, function(x) {x$cm})
+allCmVarsVe.5.2 = apply(allCmsVe.5.2, 1, var0) #get variance across all 200 sims for each pc
+
+plot(allCmVarsVe.5.2[1:238], bty="n", col = mycol[1], lwd=2, xlab = 'PC', ylab = "var(Cm)", xlim = c(0, 238), ylim=c(0,6))
+points(allCmVarsVe.1.2[1:238], col = mycol[3], lwd=2)
+points(allCmVars.2[1:238], col = mycol[5], lwd=2)
 legend('topleft', c('Ve=0','Ve=Va/10','Ve=Va/2'), col = mycol[c(5,3,1)], pch=1, bty="n", pt.lwd=2)
 
 ```
