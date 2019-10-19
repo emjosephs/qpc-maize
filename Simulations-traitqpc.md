@@ -98,6 +98,8 @@ points(allCmVars[1:238], col = mycol[5], lwd=2)
 legend('topleft', c('Ve=0','Ve=Va/10','Ve=Va/2'), col = mycol[c(5,3,1)], pch=1, bty="n", pt.lwd=2)
 ```
 
+![](Simulations-traitqpc_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
+
 Oops, previous code had a factor of 2 error. Here is updated code:
 
 ```r

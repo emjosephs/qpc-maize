@@ -90,7 +90,7 @@ sum(count_sig)/length(c(allPs))
 
 Without any V<sub>e</sub>, the variance of C<sub>m<sub> is centered around 1, as expected under neutrality. What happpens when we add V<sub>e</sub>?
 
-```{r, eval=F}
+```{r, eval=T}
 #adding Ve
 allCmsVe.1 = sapply(neutQpcVe.1, function(x) {x$cm})
 allCmVarsVe.1 = apply(allCmsVe.1, 1, var0) #get variance across all 200 sims for each pc
